@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/Add_New_Election.css">
+  <script src="index.js"></script>
+
+  <title>New Election</title>
+</head>
+<body>
+  <div class="container">
+    <label for="election-title">Judul Election:</label>
+    <input type="text" id="election-title" name="election-title" placeholder="Masukkan judul election" required>
+
+    <label for="election-description">Deskripsi Election:</label>
+    <textarea id="election-description" name="election-description" placeholder="Masukkan deskripsi election" style="resize: none;" rows="8" cols="80" required></textarea>
+
+
+
+    <label for="start-date">Start Date:</label>
+    <input type="datetime-local" id="start-date" name="start-date" required>
+
+    <label for="end-date">End Date:</label>
+    <input type="datetime-local" id="end-date" name="end-date" required>
+
+    <label for="invite-input">Undang Pengguna:</label>
+    <input type="text" id="invite-input" name="invite-input" placeholder="Masukkan email/username" required>
+
+    <button onclick="sendRequest()">Send Request</button>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
