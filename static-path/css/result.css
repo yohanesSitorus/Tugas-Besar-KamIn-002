@@ -1,0 +1,22 @@
+
+@import url('/css/dashboard.css');
+
+
+.container {
+  display: flex;
+  flex-wrap: wrap; 
+  gap: 20px; 
+}
+
+.result-section {
+  background-color: #444; 
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  color: #fff;
+  text-align: center;
+  margin-top: 20px;
+  flex: 0 0 calc(50% - 20px); 
+  box-sizing: border-box;
+}
+
