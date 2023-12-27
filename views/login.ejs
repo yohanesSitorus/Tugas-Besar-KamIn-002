@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/styles.css">
+    <title>Login Page</title>
+</head>
+<body>
+    <!-- <div class="login-form">
+        <h2>Login</h2>
+        <form action="/login" method="post">
+            <label for="username">Username:</label>
+            <input type="text" id="loginUsername" name="username" required>
+
+            <label for="password">Password:</label>
+            <input type="password" id="loginPassword" name="password" required>
+
+            <button type="submit">Login</button>
+        </form>
+    </div> -->
+    <!-- Login EJS -->
+    <div id="login" class="overlay">
+        <div class="external-window-container">
+            <a href="/" id="close-window-link">Go back</a>
+            <div class="login-form">
+                <div class="form-title">
+                    <h1 class="brandName form-brand">GoVote</h1>
+                    <h2>LOGIN</h2>
+                    <% if (success) { %>
+                        <p class="alert success">
+                            <%= errorMsg %>
+                        </p>
+                        <% } else { %>
+                            <p class="alert">
+                                <%= errorMsg %>
+                            </p>
+                            <% } %>
+                </div>
+                <form action="/login" method="post">
+                    <label for="username">Username:</label>
+                    <input type="text" id="loginUsername" name="username" required>
+        
+                    <label for="password">Password:</label>
+                    <input type="password" id="loginPassword" name="password" required>
+        
+                    <input type="submit">Login</input>
+                </form>
+                <p>New to here? <a href="/signup">Sign Up</a> instead</p>
+            </div>
+        </div>
+    </div>
+    <!-- <div class="container">
+        
+        <section class="auth-options">
+            
+            <a class="login" href="/login">Login</a>
+    
+            <div class="signup">
+                <h2>Sign Up</h2>
+                <form action="signup.php" method="post">
+                    <label for="signupUsername">Username:</label>
+                    <input type="text" id="signupUsername" name="signupUsername" required>
+    
+                    <label for="signupPassword">Password:</label>
+                    <input type="password" id="signupPassword" name="signupPassword" required>
+    
+                    <button type="submit">Sign Up</button>
+                </form>
+            </div>
+            <a class="signup" href="/signup">Sign Up</a>
+        </section>
+    </div> -->
+    
+</body>
+</html>
