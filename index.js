@@ -3,6 +3,7 @@ import path from "path";
 import session from "cookie-session";
 import crypto from "crypto";
 import cookieParser from "cookie-parser";
+import bodyParser from "body-parser";
 import mysql from "mysql";
 import forge from "node-forge";
 
@@ -14,7 +15,6 @@ const publicPath = path.resolve("static-path");
 app.use(express.static(publicPath));
 app.set("view engine", "ejs");
 
-import bodyParser from "body-parser";
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.listen(port, () => {
@@ -27,7 +27,7 @@ const pool = mysql.createPool({
     host: 'localhost',
     user: 'root',
     password: '',
-    database: 'kamin',
+    database: 'aplikasi_online_voting',
     "typeCast": function castField(field, useDefaultTypeCasting) {
       if ((field.type === "BIT") && (field.length === 1)) {
         var bytes = field.buffer();
@@ -91,11 +91,12 @@ async function isUsernameOrEmailRegistered(username, email) {
 });
 
 
-
+//homepage--------------------------------------------------------------------------------------------------------------------------------
 app.get("/", async (req, res) => {
   res.render("home");
 });
 
+//login page--------------------------------------------------------------------------------------------------------------------------------
 app.get("/login", async (req, res) => {
   res.render("login", { errorMsg: null, success: null });
 });
@@ -105,7 +106,7 @@ app.post("/login", (req, res) => {
   const password = req.body.loginPassword;
   const accountQuery = "SELECT `username`, `password` WHERE `username` = ? AND `password` = ?";
   const accountParams = [username, password];
-
+  
   pool.query(accountQuery, accountParams, (error, results) => {
     if (error) {
       console.log(error);
@@ -115,7 +116,7 @@ app.post("/login", (req, res) => {
       res.cookie("Id_account", user.Id_account);
       res.cookie("email", user.email);
       res.cookie("role", user.role);
-
+      
       if (user.role === "ADM") {
         res.redirect("/dashboard-admin");
       } else if (user.role === "VTR") {
@@ -132,6 +133,7 @@ app.post("/login", (req, res) => {
   });
 });
 
+//sign up page--------------------------------------------------------------------------------------------------------------------------------
 app.get("/signup", async (req, res) => {
   res.render("signup", { errorMsg: null, success: null });
 });
