@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/css/Add_New_Election.css">
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script> <!-- jQuery CDN -->
   <script src="index.js"></script>
 
   <title>New Election</title>
@@ -16,8 +17,6 @@
     <label for="election-description">Deskripsi Election:</label>
     <textarea id="election-description" name="election-description" placeholder="Masukkan deskripsi election" style="resize: none;" rows="8" cols="80" required></textarea>
 
-
-
     <label for="start-date">Start Date:</label>
     <input type="datetime-local" id="start-date" name="start-date" required>
 
@@ -26,8 +25,35 @@
 
     <label for="invite-input">Undang Pengguna:</label>
     <input type="text" id="invite-input" name="invite-input" placeholder="Masukkan email/username" required>
-
+    <div id="error-message" style="color: red;"></div>
+    
     <button onclick="sendRequest()">Send Request</button>
+
+    <script>
+      async function sendRequest() {
+        const electionTitle = document.getElementById('election-title').value;
+        const electionDescription = document.getElementById('election-description').value;
+        const startDate = document.getElementById('start-date').value;
+        const endDate = document.getElementById('end-date').value;
+        const inviteInput = document.getElementById('invite-input').value;
+
+        const response = await fetch('/send-request', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ electionTitle, electionDescription, startDate, endDate, inviteInput }),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          alert(result.message);
+        } else {
+          document.getElementById('error-message').innerText = result.error;
+        }
+      }
+    </script>
   </div>
   <script src="script.js"></script>
 </body>
