@@ -24,19 +24,35 @@ app.listen(port, () => {
 
 // MySQL Connection
 const pool = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'aplikasi_online_voting',
-    "typeCast": function castField(field, useDefaultTypeCasting) {
-      if ((field.type === "BIT") && (field.length === 1)) {
-        var bytes = field.buffer();
-        return (bytes[0]);
-      }
-      return (useDefaultTypeCasting());
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'aplikasi_online_voting',
+  "typeCast": function castField(field, useDefaultTypeCasting) {
+    if ((field.type === "BIT") && (field.length === 1)) {
+      var bytes = field.buffer();
+      return (bytes[0]);
     }
-  });
-  
+    return (useDefaultTypeCasting());
+  }
+});
+
+const dbConnect = () => {
+    return new Promise((resolve, reject) => {
+        pool.getConnection((err, conn) => {
+            if(err){
+                reject (err);
+            }
+            else{
+                resolve(conn);
+            }
+        }
+        )
+    })
+};
+
+const conn = await dbConnect();
+
 // Middleware connection
 const key1 = crypto.randomBytes(32).toString("hex");
 const key2 = crypto.randomBytes(32).toString("hex");
@@ -148,7 +164,7 @@ app.post("/signup", async (req, res) => {
   const usernameParams = [username];
   const emailQuery = "SELECT `email` FROM voter WHERE `email` = ?";
   const emailParams = [email];
-
+  
   pool.query(usernameQuery, usernameParams, (error, usernameResults) => {
     if (error) {
       console.log(error);
@@ -176,7 +192,7 @@ app.post("/signup", async (req, res) => {
                 const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048 });
                 const publicKey = forge.pki.publicKeyToPem(keyPair.publicKey);
                 const privateKey = forge.pki.privateKeyToPem(keyPair.privateKey);
-
+                
                 const role = "VTR";
                 const hashedPass = crypto.createHash("sha256").update(password).digest("hex");
                 const insUserQuery = "INSERT INTO user (username, password, role) VALUES (?, ?, ?)";
@@ -217,3 +233,50 @@ app.post("/signup", async (req, res) => {
     }
   });
 });
+
+//dashboard user--------------------------------------------------------------------------------------------------------------------------------
+app.get('/dashboard', async (req, res) => {
+    res.render('dashboard')
+})
+
+// app.get('/dashboard', async (req, res) => {
+  //     try {
+//         // Get the list of elections
+//         const elections = await getElections();
+
+//         // Pass the election data to the view
+//         res.render('dashboard', { elections });
+//     } catch (error) {
+//         console.error('Error fetching data from the database:', error);
+//         res.status(500).send('Internal Server Error');
+//     }
+// });
+
+//requested election page--------------------------------------------------------------------------------------------------------------------------------
+app.get('/requested', async (req, res) => {
+  res.render('requested')
+})
+
+//results page--------------------------------------------------------------------------------------------------------------------------------
+app.get('/result', async (req, res) => {
+  res.render('result')
+})
+
+
+const getElections = () => {
+  return new Promise((resolve, reject) => {
+    const query = 'SELECT electionID, title, description FROM election';
+    pool.query(query, (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+};
+
+
+
+
+
