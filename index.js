@@ -155,10 +155,8 @@ app.post("/signup", async (req, res) => {
                       if (error) {
                         console.log(error);
                       } else {
-                        res.cookie("Id_account", userID);
-                        res.cookie("email", email);
-                        res.cookie("role", role);
                         req.session.idAccount = userID;
+                        req.session.name = name;
                         req.session.email = email;
                         req.session.role = role;
                         res.redirect("/dashboard-user");
