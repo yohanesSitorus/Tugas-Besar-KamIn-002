@@ -1,24 +1,67 @@
-/* Add_New_Election.css */
-
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
+body, h1, h2, h3, p, ul, li, figure, figcaption, div {
   margin: 0;
   padding: 0;
+  border: 0;
+}
+
+h2{
+  margin-bottom: 10%;
+}
+
+body {
+  background-color: #05293C;
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  color: white;
+}
+
+#wrapper {
+  display: flex;
+  flex: 1;
+}
+
+#left-sidebar {
+  background-color: #05293C;
+  color: #fff;
+  padding: 20px;
+  width: 250px;
+  min-width: 250px;
+  box-sizing: border-box;
+}
+
+.links-container {
+  display: flex;
+  flex-direction: column;
 }
 
 .container {
-  max-width: 600px;
-  margin: 50px auto;
-  background-color: #fff;
+  display: flex;
+  flex-direction: column;
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  flex-grow: 1;
+}
+
+.menu-routing {
+  text-decoration: none;
+  color: #fff;
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.menu-routing:hover {
+  background-color: #555;
 }
 
 label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
+  font-weight: bold;
 }
 
 input[type="text"],
@@ -26,29 +69,94 @@ textarea,
 input[type="datetime-local"] {
   width: 100%;
   padding: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   box-sizing: border-box;
-  border: 1px solid #ccc;
-  border-radius: 4px;
 }
 
 button {
-  background-color: #4caf50;
-  color: #fff;
-  padding: 10px 15px;
+  background-color: #444D56;
+  color: #0EA5E9;
+  padding: 10px;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
+  transition: background-color 0.3s;
+  border-color: #0EA5E9;
+  border-style:solid;
+  font-weight:bolder;
+  border-width: 1px;
 }
 
 button:hover {
-  background-color: #45a049;
+  background-color: #0EA5E9;
+  color: #fff;
 }
 
-/* Optional: Style for responsive design */
-@media screen and (max-width: 600px) {
-  .container {
-    max-width: 100%;
-    margin: 20px;
-  }
+.menu-routing {
+  display: block;
+  font-weight:bolder;
+  width: 90%;
+  padding: 10px;
+  font-size: 16px;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  margin: 5px 0;
+  border-radius: 5px;
+  color: #0EA5E9;
+  background-color: #444D56;
+  transition: background-color 0.3s, color 0.3s;
+  border: #0EA5E9;
+  border-color: #0EA5E9;
+  border-style:solid;
+  border-width: 1px;
+}
+
+.menu-routing:hover {
+  background-color: #0EA5E9;
+  color: #fff;
+}
+
+.menu-routing:active {
+  transform: translateY(2px);
+}
+
+#atur-jadwal {
+  margin-top: 0;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  
+}
+
+input[type="text"],
+textarea,
+input[type="datetime-local"] {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+  background-color: #657585;
+  border: 1px solid #657585;
+  color: #fff;
+  border-radius: 5px;
+}
+
+::placeholder {
+  color: #9d9d9d; /* Warna placeholder */
+  font-family: 'Arial', sans-serif; /* Font placeholder */
+}
+
+input[type="text"],
+textarea,
+input[type="datetime-local"] {
+  color: #9d9d9d;
+}
+
+#election-description{
+  font-family: 'Arial', sans-serif;
+  color: #fff;
 }
