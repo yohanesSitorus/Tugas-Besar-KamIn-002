@@ -3,7 +3,7 @@ body {
   font-family: "Arial", sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #f4f4f4;
+  background-color: #05293c;
 }
 
 .container {
@@ -93,23 +93,30 @@ button:hover {
   padding: 5px 10px;
   border-radius: 5px;
   text-decoration: none;
-  background-color: white;
-  color: black;
+  background: rgba(255, 255, 255, 0.2);
   font-weight: bold;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   position: relative;
   top: 30px;
+  color: white;
 }
 .signup-form {
   max-width: 600px;
   margin: 50px auto;
-  background-color: #fff;
+  background: rgba(255, 255, 255, 0.2);
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 #signup label {
   font-size: 16px;
+  color: white;
+}
+#signup h1,
+#signup h2,
+#signup p,
+#signup h4 {
+  color: white;
 }
 #signupSubmit {
   font-size: 16px;
@@ -120,7 +127,7 @@ button:hover {
 }
 #message {
   display: none;
-  background: #f1f1f1;
+  background: rgba(255, 255, 255, 0.2);
   color: #000;
   position: relative;
   padding: 8px 15px;
@@ -145,4 +152,7 @@ button:hover {
   position: relative;
   left: -10px;
   content: "\00D7";
+}
+#login-link {
+  color: #c5c5c5;
 }

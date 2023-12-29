@@ -59,7 +59,7 @@ app.get("/login", async (req, res) => {
 app.post("/login", (req, res) => {
   const username = req.body.loginUsername;
   const password = req.body.loginPassword;
-  const accountQuery = "SELECT `username`, `password` WHERE `username` = ? AND `password` = ?";
+  const accountQuery = "SELECT `username`, `password` from user WHERE `username` = ? AND `password` = ?";
   const accountParams = [username, password];
 
   pool.query(accountQuery, accountParams, (error, results) => {
@@ -158,6 +158,9 @@ app.post("/signup", async (req, res) => {
                         res.cookie("Id_account", userID);
                         res.cookie("email", email);
                         res.cookie("role", role);
+                        req.session.idAccount = userID;
+                        req.session.email = email;
+                        req.session.role = role;
                         res.redirect("/dashboard-user");
                       }
                     });
