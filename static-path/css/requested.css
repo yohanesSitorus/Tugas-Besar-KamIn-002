@@ -1,0 +1,41 @@
+.requested-section {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  margin-top: 40px;
+  color: #fff;
+}
+
+.action-buttons {
+  margin-top: 20px;
+}
+
+.approve-button,
+.reject-button {
+  color: #fff;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-right: 10px;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+.approve-button {
+  background-color: #4caf50;
+}
+.reject-button {
+  background-color: #f44336;
+}
+
+.approve-button:hover {
+  background-color: #3b953e;
+  border: none;
+  color: white;
+}
+.reject-button:hover {
+  background-color: #d82b1f;
+  border: none;
+  color: white;
+}
