@@ -32,7 +32,8 @@
     
         <label for="invite-input">Undang Pengguna:</label>
         <input type="text" id="inviteinput" name="inviteinput" placeholder="Masukkan email" required>
-        <div id="error-message" style="color: red;"></div>
+       
+        <p class="alert" id="notif"><%= errorMsg %></p>
         
         <button onclick="Add_New_Election()">Send Request</button>
 

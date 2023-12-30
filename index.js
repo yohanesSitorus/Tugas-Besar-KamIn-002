@@ -90,37 +90,46 @@ app.post("/Add_New_Election", async (req, res) => {
   const endDate = req.body.enddate;
   const email = req.body.inviteinput;
   
-  // Mengecek apakah email sudah terdaftar
+  // Pengecekan apakah email sudah terdaftar
   const emailQuery = "SELECT `email` FROM voter WHERE `email` = ?";
   const emailQ = [email];
 
-  pool.query(emailQuery, emailQ, (error, EmailResult) => {
+  pool.query(emailQuery, emailQ, (error, emailResult) => {
     if (error) {
       console.log(error);
-      res.render("Add_New_Election", {
-        errorMsg: "Terjadi kesalahan pada server.",
+      return res.render("Add_New_Election", {
+        errorMsg: "Terjadi kesalahan pada server. Mohon coba lagi nanti.",
+      });
+    }
+
+    if (emailResult.length > 0) {
+      // Jika email terdaftar
+      const insertVoteQuery = "INSERT INTO election (title, description, startDate, endDate) VALUES (?, ?, ?, ?)";
+      const electionValues = [electionTitle, electionDescription, startDate, endDate];
+
+      pool.query(insertVoteQuery, electionValues, (insertError, insertResult) => {
+        if (insertError) {
+          console.log(insertError);
+          return res.render("Add_New_Election", {
+            errorMsg: "Gagal menyimpan data pemilihan. Mohon coba lagi nanti.",
+            successMsg: null, // Tambahkan successMsg agar pesan keberhasilan tidak ditampilkan saat terjadi kesalahan
+          });
+        }
+
+        console.log("Data pemilihan berhasil disimpan:", insertResult);
+        res.render("Add_New_Election", {
+          errorMsg: "Pemilihan berhasil ditambahkan.", 
+        });
       });
     } else {
-        // Menyisipkan data pemilihan ke dalam database
-        const insertVoteQuery = "INSERT INTO election (title, description, startDate, endDate) VALUES (?, ?, ?, ?)";
-        const electionValues = [electionTitle, electionDescription, startDate, endDate];
-
-        pool.query(insertVoteQuery, electionValues, (insertError, insertResult) => {
-          if (insertError) {
-            console.log(insertError);
-            res.render("Add_New_Election", {
-              errorMsg: "Gagal menyimpan data pemilihan.",
-            });
-          } else {
-            res.render("Add_New_Election", {
-              successMsg: "Pemilihan berhasil ditambahkan.",
-            });
-          }
-        });
-      
+      // Jika email belum terdaftar
+      res.render("Add_New_Election", {
+        errorMsg: "Email tidak terdaftar. Silakan gunakan email yang terdaftar.",
+      });
     }
   });
 });
+
 
 
   
