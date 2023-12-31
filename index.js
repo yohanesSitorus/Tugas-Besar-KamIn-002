@@ -137,37 +137,86 @@ app.get("/login", async (req, res) => {
   res.render("login", { errorMsg: null, success: null });
 });
 
-app.post("/login", (req, res) => {
-  const username = req.body.loginUsername;
-  const password = req.body.loginPassword;
-  const accountQuery = "SELECT `username`, `password` WHERE `username` = ? AND `password` = ?";
-  const accountParams = [username, password];
-  
-  pool.query(accountQuery, accountParams, (error, results) => {
-    if (error) {
-      console.log(error);
-    } else if (results.length > 0) {
-      console.log(results);
-      const user = results[0];
-      res.cookie("Id_account", user.Id_account);
-      res.cookie("email", user.email);
-      res.cookie("role", user.role);
-      
-      if (user.role === "ADM") {
-        res.redirect("/dashboard-admin");
-      } else if (user.role === "VTR") {
-        res.redirect("/dashboard-user");
+app.post("/login", async (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+  const hashedPass = crypto.createHash("sha256").update(password).digest("hex");
+  // console.log(hashedPass) ;
+  // console.log(await authenticatePass(username, hashedPass)) ;
+  if(await authenticatePass(username, hashedPass)===true){
+
+    const query = `
+                select userID, role
+                from user
+                where username = ? and password = ?`;
+
+    const params = [username, hashedPass] ;
+
+    pool.query(query, params, (error, results) => {
+      if (error) {
+        console.log(error);
+      } else if (results.length > 0) {
+        console.log(results);
+        const user = results[0];
+        req.session.userID = user.userID ;
+        
+        if (user.role === "ADM") {
+          res.redirect("/dashboard-admin");
+        } else if (user.role === "VTR") {
+          res.redirect("/dashboard-user");
+        } else {
+          res.redirect("/404", { errorMsg: "Akun anda tidak valid, silahkan hubungi admin" });
+        }
       } else {
-        res.redirect("/404", { errorMsg: "Akun anda tidak valid, silahkan hubungi admin" });
+        res.render("login", {
+          errorMsg: "anda belum terdaftar di sistem",
+          success: false,
+        });
       }
-    } else {
-      res.render("login", {
-        errorMsg: "Password / email anda salah.",
-        success: false,
-      });
-    }
-  });
+    });
+  }else{
+    res.render("login", {
+      errorMsg: "password / username anda salah.",
+      success: false,
+    });
+  }
+  
 });
+
+//fungsi otentikasi kesamaan password
+async function authenticatePass(username, hashedPass) {
+
+  const query = `
+                select password
+                from user
+                where username = ?`;
+
+  const param = username;
+
+  try {
+      const data = await new Promise((resolve, reject) => {
+          pool.query(query, param, (error, results) => {
+              if (error) {
+                  console.log(error);
+                  reject(error);
+              } else {
+                  resolve(JSON.parse(JSON.stringify(results)));
+              }
+          });
+      });
+
+      // console.log(data) ;
+      if(data[0].password === hashedPass) {
+        // console.log('true');
+        return true ;
+      }else{
+        // console.log('false');
+        return false ;
+      }
+  } catch (error) {
+      throw error;
+  }
+}
 
 //sign up page--------------------------------------------------------------------------------------------------------------------------------
 app.get("/signup", async (req, res) => {
@@ -255,7 +304,7 @@ app.post("/signup", async (req, res) => {
 });
 
 //dashboard user--------------------------------------------------------------------------------------------------------------------------------
-app.get('/dashboard', async (req, res) => {
+app.get('/dashboard-user', async (req, res) => {
     res.render('dashboard')
 })
 
