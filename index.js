@@ -46,9 +46,8 @@ const dbConnect = () => {
             else{
                 resolve(conn);
             }
-        }
-        )
-    })
+        });
+    });
 };
 
 const conn = await dbConnect();

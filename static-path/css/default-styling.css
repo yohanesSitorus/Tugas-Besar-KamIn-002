@@ -1,8 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap');
-
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap");
 
 * {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   font-weight: 400;
 }
 
@@ -24,7 +23,6 @@ input[type='submit'] {
   margin-right: 0;
 }
 
-
 a {
   color: #0038ff;
   margin-right: 1rem;
@@ -33,19 +31,15 @@ button,
 a {
   font-weight: 450;
 }
-
-a:last-child {
-  margin: 0;
-}
 .hidden {
   display: none !important;
 }
 
 .brandName {
-  
   font-size: 1.5rem;
   font-weight: 700;
 }
+
 a {
   list-style: none;
 }
@@ -91,13 +85,16 @@ a {
 
 .menu-routing {
   margin: 1rem 0;
-  padding: 0.4rem;
+  padding: 0.4rem 0;
   text-align: center;
-  border: 2px solid black;
   border-radius: 10px;
-  max-width: fit-content;
   display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.2);
+  width: 150px;
 }
 
-
-
+.menu-routing:hover {
+  background: rgba(255, 255, 255, 0.1);
+}

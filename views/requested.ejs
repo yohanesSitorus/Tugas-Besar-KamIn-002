@@ -2,36 +2,35 @@
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Requested Election</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,1,0" />
-  <link rel="stylesheet" href="/css/default-styling.css">
-  <link rel="stylesheet" href="/css/dashboard.css">
-  
-  <link rel="stylesheet" href="/css/requested.css">
-</head>
-<body>
-  <div id="wrapper">
-    <section id="left-sidebar">
-      <h2>Selamat Datang, [Nama Pengguna].</h2>
-      
-      <%- include('nav-link/sidebar'); %>
-    </section>
-    <div class="container">
-      <div class="requested-section">
-      
-        <h2>Judul Election Requested</h2>
-        <p>Deskripsi Election Requested</p>
-        <p>Start Date: DD/MM/YYYY</p>
-        <p>End Date: DD/MM/YYYY</p>
-        <div class="action-buttons">
-          <button class="approve-button">Approve</button>
-          <button class="reject-button">Reject</button>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Requested Election</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,1,0" />
+    <link rel="stylesheet" href="/css/default-styling.css" />
+    <link rel="stylesheet" href="/css/dashboard.css" />
+
+    <link rel="stylesheet" href="/css/requested.css" />
+  </head>
+  <body>
+    <div id="wrapper">
+      <section id="left-sidebar">
+        <h2>Selamat Datang, [Nama Pengguna].</h2>
+
+        <%- include('nav-link/sidebar'); %>
+      </section>
+      <div class="container">
+        <div class="requested-section">
+          <h2>Judul Election Requested</h2>
+          <p>Deskripsi Election Requested</p>
+          <p>Start Date: DD/MM/YYYY</p>
+          <p>End Date: DD/MM/YYYY</p>
+          <div class="action-buttons">
+            <button class="approve-button">Approve</button>
+            <button class="reject-button">Reject</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</body>
+  </body>
 </html>
