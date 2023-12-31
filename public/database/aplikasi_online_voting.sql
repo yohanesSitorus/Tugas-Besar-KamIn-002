@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 31, 2023 at 11:35 AM
+-- Generation Time: Dec 31, 2023 at 01:04 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.1.17
 
@@ -130,6 +130,18 @@ CREATE TABLE `result` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `submittedelection`
+--
+
+CREATE TABLE `submittedelection` (
+  `voterID` int(11) NOT NULL,
+  `electionID` int(11) NOT NULL,
+  `selectedCandidate` bigint(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `user`
 --
 
@@ -233,6 +245,13 @@ ALTER TABLE `result`
   ADD KEY `fk_result_candidate` (`candidateID`);
 
 --
+-- Indexes for table `submittedelection`
+--
+ALTER TABLE `submittedelection`
+  ADD KEY `fk_submittedElection_voter` (`voterID`),
+  ADD KEY `fk_submittedElection_election` (`electionID`);
+
+--
 -- Indexes for table `user`
 --
 ALTER TABLE `user`
@@ -304,6 +323,13 @@ ALTER TABLE `participant`
 ALTER TABLE `result`
   ADD CONSTRAINT `fk_result_candidate` FOREIGN KEY (`candidateID`) REFERENCES `candidate` (`candidateID`),
   ADD CONSTRAINT `fk_result_election` FOREIGN KEY (`electionID`) REFERENCES `election` (`electionID`);
+
+--
+-- Constraints for table `submittedelection`
+--
+ALTER TABLE `submittedelection`
+  ADD CONSTRAINT `fk_submittedElection_election` FOREIGN KEY (`electionID`) REFERENCES `election` (`electionID`),
+  ADD CONSTRAINT `fk_submittedElection_voter` FOREIGN KEY (`voterID`) REFERENCES `voter` (`voterID`);
 
 --
 -- Constraints for table `vote`
