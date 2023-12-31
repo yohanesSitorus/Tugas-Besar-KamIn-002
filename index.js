@@ -70,14 +70,6 @@ app.use(
   })
 );
 
-
-
-
-
-
-
-
-
 app.get("/Add_New_Election", async (req, res) => {
   res.render("Add_New_Election", { errorMsg: null, success: null });
 });
@@ -129,25 +121,11 @@ app.post("/Add_New_Election", async (req, res) => {
   });
 });
 
-  
-
-
-
-
-
-
-
-
-
-
-
-
 function sendInvitationEmail(email) {
   // Implementasi logika pengiriman email undangan di sini
   // Misalnya menggunakan Nodemailer atau layanan email lainnya
   // ...
 }
-
 
 //homepage--------------------------------------------------------------------------------------------------------------------------------
 app.get("/", async (req, res) => {
