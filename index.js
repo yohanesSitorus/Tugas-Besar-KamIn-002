@@ -154,7 +154,7 @@ app.post("/login", async (req, res) => {
       if (error) {
         console.log(error);
       } else if (results.length > 0) {
-        console.log(results);
+        // console.log(results);
         const user = results[0];
         req.session.userID = user.userID;
 
@@ -327,7 +327,34 @@ app.get("/requested", async (req, res) => {
 });
 
 //approved election page--------------------------------------------------------------------------------------------------------------------------------
-//tulis mulai dari sini...
+app.get("/approved/:electionID", async (req, res) => {
+  const { electionID } = req.params;
+  const conn = await dbConnect();
+  const name = await getName(conn, req.session.userID);
+  const electionQuery = "SELECT `title`, `description`, `startDate`, `endDate` FROM election WHERE `electionID` = ?";
+  const electionParam = [electionID];
+  pool.query(electionQuery, electionParam, (error, resultsElection) => {
+    if (error) {
+      console.log(error);
+    } else {
+      const election = resultsElection;
+      const candidateQuery = "SELECT `candidateID`, `name` FROM candidate WHERE `electionID` = ?";
+      const candidateParam = [electionID];
+      pool.query(candidateQuery, candidateParam, (error, resultsCandidate) => {
+        if (error) {
+          console.log(error);
+        } else {
+          const candidate = resultsCandidate;
+          res.render("approved", {
+            name: name,
+            election: election,
+            candidate: candidate,
+          });
+        }
+      });
+    }
+  });
+});
 
 //results page--------------------------------------------------------------------------------------------------------------------------------
 app.get("/result", async (req, res) => {
@@ -358,32 +385,3 @@ const getName = (conn, voterID) => {
     });
   });
 };
-
-app.get("/approved/:electionID", async (req, res) => {
-  const { electionID } = req.params;
-  const conn = await dbConnect();
-  const name = await getName(conn, req.session.userID);
-  const electionQuery = "SELECT `title`, `description`, `startDate`, `endDate` FROM election WHERE `electionID` = ?";
-  const electionParam = [electionID];
-  pool.query(electionQuery, electionParam, (error, resultsElection) => {
-    if (error) {
-      console.log(error);
-    } else {
-      const election = resultsElection;
-      const candidateQuery = "SELECT `candidateID`, `name` FROM candidate WHERE `electionID` = ?";
-      const candidateParam = [electionID];
-      pool.query(candidateQuery, candidateParam, (error, resultsCandidate) => {
-        if (error) {
-          console.log(error);
-        } else {
-          const candidate = resultsCandidate;
-          res.render("approved", {
-            name: name,
-            election: election,
-            candidate: candidate,
-          });
-        }
-      });
-    }
-  });
-});
