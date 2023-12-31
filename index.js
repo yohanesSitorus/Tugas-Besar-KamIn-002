@@ -24,30 +24,29 @@ app.listen(port, () => {
 
 // MySQL Connection
 const pool = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'aplikasi_online_voting',
-  "typeCast": function castField(field, useDefaultTypeCasting) {
-    if ((field.type === "BIT") && (field.length === 1)) {
+  host: "localhost",
+  user: "root",
+  password: "",
+  database: "aplikasi_online_voting",
+  typeCast: function castField(field, useDefaultTypeCasting) {
+    if (field.type === "BIT" && field.length === 1) {
       var bytes = field.buffer();
-      return (bytes[0]);
+      return bytes[0];
     }
-    return (useDefaultTypeCasting());
-  }
+    return useDefaultTypeCasting();
+  },
 });
 
 const dbConnect = () => {
-    return new Promise((resolve, reject) => {
-        pool.getConnection((err, conn) => {
-            if(err){
-                reject (err);
-            }
-            else{
-                resolve(conn);
-            }
-        });
+  return new Promise((resolve, reject) => {
+    pool.getConnection((err, conn) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(conn);
+      }
     });
+  });
 };
 
 const conn = await dbConnect();
@@ -80,7 +79,7 @@ app.post("/Add_New_Election", async (req, res) => {
   const startDate = req.body.startdate;
   const endDate = req.body.enddate;
   const email = req.body.inviteinput;
-  
+
   // Pengecekan apakah email sudah terdaftar
   const emailQuery = "SELECT `email` FROM voter WHERE `email` = ?";
   const emailQ = [email];
@@ -109,7 +108,7 @@ app.post("/Add_New_Election", async (req, res) => {
 
         console.log("Data pemilihan berhasil disimpan:", insertResult);
         res.render("Add_New_Election", {
-          errorMsg: "Pemilihan berhasil ditambahkan.", 
+          errorMsg: "Pemilihan berhasil ditambahkan.",
         });
       });
     } else {
@@ -143,14 +142,13 @@ app.post("/login", async (req, res) => {
   const hashedPass = crypto.createHash("sha256").update(password).digest("hex");
   // console.log(hashedPass) ;
   // console.log(await authenticatePass(username, hashedPass)) ;
-  if(await authenticatePass(username, hashedPass)===true){
-
+  if ((await authenticatePass(username, hashedPass)) === true) {
     const query = `
                 select userID, role
                 from user
                 where username = ? and password = ?`;
 
-    const params = [username, hashedPass] ;
+    const params = [username, hashedPass];
 
     pool.query(query, params, (error, results) => {
       if (error) {
@@ -158,8 +156,8 @@ app.post("/login", async (req, res) => {
       } else if (results.length > 0) {
         console.log(results);
         const user = results[0];
-        req.session.userID = user.userID ;
-        
+        req.session.userID = user.userID;
+
         if (user.role === "ADM") {
           res.redirect("/dashboard-admin");
         } else if (user.role === "VTR") {
@@ -174,18 +172,16 @@ app.post("/login", async (req, res) => {
         });
       }
     });
-  }else{
+  } else {
     res.render("login", {
       errorMsg: "password / username anda salah.",
       success: false,
     });
   }
-  
 });
 
 //fungsi otentikasi kesamaan password
 async function authenticatePass(username, hashedPass) {
-
   const query = `
                 select password
                 from user
@@ -194,27 +190,27 @@ async function authenticatePass(username, hashedPass) {
   const param = username;
 
   try {
-      const data = await new Promise((resolve, reject) => {
-          pool.query(query, param, (error, results) => {
-              if (error) {
-                  console.log(error);
-                  reject(error);
-              } else {
-                  resolve(JSON.parse(JSON.stringify(results)));
-              }
-          });
+    const data = await new Promise((resolve, reject) => {
+      pool.query(query, param, (error, results) => {
+        if (error) {
+          console.log(error);
+          reject(error);
+        } else {
+          resolve(JSON.parse(JSON.stringify(results)));
+        }
       });
+    });
 
-      // console.log(data) ;
-      if(data[0].password === hashedPass) {
-        // console.log('true');
-        return true ;
-      }else{
-        // console.log('false');
-        return false ;
-      }
+    // console.log(data) ;
+    if (data[0].password === hashedPass) {
+      // console.log('true');
+      return true;
+    } else {
+      // console.log('false');
+      return false;
+    }
   } catch (error) {
-      throw error;
+    throw error;
   }
 }
 
@@ -233,7 +229,7 @@ app.post("/signup", async (req, res) => {
   const usernameParams = [username];
   const emailQuery = "SELECT `email` FROM voter WHERE `email` = ?";
   const emailParams = [email];
-  
+
   pool.query(usernameQuery, usernameParams, (error, usernameResults) => {
     if (error) {
       console.log(error);
@@ -261,7 +257,7 @@ app.post("/signup", async (req, res) => {
                 const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048 });
                 const publicKey = forge.pki.publicKeyToPem(keyPair.publicKey);
                 const privateKey = forge.pki.privateKeyToPem(keyPair.privateKey);
-                
+
                 const role = "VTR";
                 const hashedPass = crypto.createHash("sha256").update(password).digest("hex");
                 const insUserQuery = "INSERT INTO user (username, password, role) VALUES (?, ?, ?)";
@@ -286,9 +282,8 @@ app.post("/signup", async (req, res) => {
                       if (error) {
                         console.log(error);
                       } else {
-                        res.cookie("Id_account", userID);
-                        res.cookie("email", email);
-                        res.cookie("role", role);
+                        req.session.userID = userID;
+
                         res.redirect("/dashboard-user");
                       }
                     });
@@ -304,12 +299,12 @@ app.post("/signup", async (req, res) => {
 });
 
 //dashboard user--------------------------------------------------------------------------------------------------------------------------------
-app.get('/dashboard-user', async (req, res) => {
-    res.render('dashboard')
-})
+app.get("/dashboard-user", async (req, res) => {
+  res.render("dashboard");
+});
 
 // app.get('/dashboard', async (req, res) => {
-  //     try {
+//     try {
 //         // Get the list of elections
 //         const elections = await getElections();
 
@@ -326,25 +321,22 @@ app.get('/dashboard-user', async (req, res) => {
 //   res.render('Add_New_Election')
 // })
 
-
 //requested election page--------------------------------------------------------------------------------------------------------------------------------
-app.get('/requested', async (req, res) => {
-  res.render('requested')
-})
+app.get("/requested", async (req, res) => {
+  res.render("requested");
+});
 
 //approved election page--------------------------------------------------------------------------------------------------------------------------------
 //tulis mulai dari sini...
 
-
 //results page--------------------------------------------------------------------------------------------------------------------------------
-app.get('/result', async (req, res) => {
-  res.render('result')
-})
-
+app.get("/result", async (req, res) => {
+  res.render("result");
+});
 
 const getElections = () => {
   return new Promise((resolve, reject) => {
-    const query = 'SELECT electionID, title, description FROM election';
+    const query = "SELECT electionID, title, description FROM election";
     pool.query(query, (err, results) => {
       if (err) {
         reject(err);
@@ -354,7 +346,3 @@ const getElections = () => {
     });
   });
 };
-
-
-
-
