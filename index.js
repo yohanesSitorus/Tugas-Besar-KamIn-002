@@ -346,3 +346,44 @@ const getElections = () => {
     });
   });
 };
+
+const getName = (conn, voterID) => {
+  return new Promise((resolve, reject) => {
+    conn.query("SELECT name FROM voter WHERE voterID = ?", [voterID], (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
+
+app.get("/approved/:electionID", async (req, res) => {
+  const { electionID } = req.params;
+  const conn = await dbConnect();
+  const name = await getName(conn, req.session.userID);
+  const electionQuery = "SELECT `title`, `description`, `startDate`, `endDate` FROM election WHERE `electionID` = ?";
+  const electionParam = [electionID];
+  pool.query(electionQuery, electionParam, (error, resultsElection) => {
+    if (error) {
+      console.log(error);
+    } else {
+      const election = resultsElection;
+      const candidateQuery = "SELECT `candidateID`, `name` FROM candidate WHERE `electionID` = ?";
+      const candidateParam = [electionID];
+      pool.query(candidateQuery, candidateParam, (error, resultsCandidate) => {
+        if (error) {
+          console.log(error);
+        } else {
+          const candidate = resultsCandidate;
+          res.render("approved", {
+            name: name,
+            election: election,
+            candidate: candidate,
+          });
+        }
+      });
+    }
+  });
+});

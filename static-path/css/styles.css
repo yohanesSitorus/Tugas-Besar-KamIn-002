@@ -268,3 +268,104 @@ input {
 #login-link {
   color: #c5c5c5;
 }
+
+/* Sidebar */
+.hidden {
+  display: none !important;
+}
+#left-sidebar {
+  width: 250px;
+  background-color: #00202f;
+  color: #fff;
+  padding: 20px;
+  box-sizing: border-box;
+  position: fixed;
+  height: 100%;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 2px solid rgb(0, 0, 0);
+}
+#left-sidebar > :nth-child(1) {
+  margin-bottom: 2rem;
+}
+.links-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.menu-routing {
+  margin: 1rem 0;
+  padding: 0.4rem 0;
+  text-align: center;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.2);
+  width: 150px;
+  color: white;
+}
+.menu-routing:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Approved Election Page */
+#wrapper-approved {
+  display: flex;
+  grid-template-columns: 20vw 80vh;
+}
+#wrapper-approved a {
+  text-decoration: none;
+  color: white;
+  font-weight: 500;
+}
+#wrapper-approved h2 {
+  color: white;
+  font-weight: bold;
+}
+.approved-section {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  margin-top: 40px;
+  color: #fff;
+}
+.vote-button:hover {
+  border: none;
+  color: white;
+}
+.vote-button {
+  margin-top: 10px;
+  font-weight: 500;
+  width: 100%;
+}
+.container-approved {
+  flex-grow: 1;
+  padding: 20px;
+  box-sizing: border-box;
+  margin-left: 250px;
+  margin-top: 40px;
+}
+.radioButton {
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  border-radius: 10px;
+  padding: 3px 0;
+  margin: 5px 0;
+}
+#submitVote {
+  font-weight: 500;
+}
+.radioButton label {
+  margin: auto 3px;
+}
+.radioButton input {
+  margin: 7px 5px;
+}
+#wrapper-approved button {
+  font-weight: 600;
+  font-size: 15px;
+}
