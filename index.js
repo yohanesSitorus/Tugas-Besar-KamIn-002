@@ -70,40 +70,85 @@ app.use(
   })
 );
 
-async function isUsernameOrEmailRegistered(username, email) {
-    const query = 'SELECT `username`, `email` FROM `user` WHERE `username` = ? OR `email` = ?';
-    const values = [username, email];
+
+
+
+
+
+
+
+
+app.get("/Add_New_Election", async (req, res) => {
+  res.render("Add_New_Election", { errorMsg: null, success: null });
+});
+
+app.post("/Add_New_Election", async (req, res) => {
+  const electionTitle = req.body.electiontitle;
+  const electionDescription = req.body.electiondescription;
+  const startDate = req.body.startdate;
+  const endDate = req.body.enddate;
+  const email = req.body.inviteinput;
   
-    return new Promise((resolve, reject) => {
-      pool.query(query, values, (err, results) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({
-            isUsernameRegistered: results.some((user) => user.username === username),
-            isEmailRegistered: results.some((user) => user.email === email),
+  // Pengecekan apakah email sudah terdaftar
+  const emailQuery = "SELECT `email` FROM voter WHERE `email` = ?";
+  const emailQ = [email];
+
+  pool.query(emailQuery, emailQ, (error, emailResult) => {
+    if (error) {
+      console.log(error);
+      return res.render("Add_New_Election", {
+        errorMsg: "Terjadi kesalahan pada server. Mohon coba lagi nanti.",
+      });
+    }
+
+    if (emailResult.length > 0) {
+      // Jika email terdaftar
+      const insertVoteQuery = "INSERT INTO election (title, description, startDate, endDate) VALUES (?, ?, ?, ?)";
+      const electionValues = [electionTitle, electionDescription, startDate, endDate];
+
+      pool.query(insertVoteQuery, electionValues, (insertError, insertResult) => {
+        if (insertError) {
+          console.log(insertError);
+          return res.render("Add_New_Election", {
+            errorMsg: "Gagal menyimpan data pemilihan. Mohon coba lagi nanti.",
+            successMsg: null, // Tambahkan successMsg agar pesan keberhasilan tidak ditampilkan saat terjadi kesalahan
           });
         }
+
+        console.log("Data pemilihan berhasil disimpan:", insertResult);
+        res.render("Add_New_Election", {
+          errorMsg: "Pemilihan berhasil ditambahkan.", 
+        });
       });
-    });
-  }
-  
-app.post('/send-request', async (req, res) => {
-  const { electionTitle, electionDescription, username, email } = req.body;
-
-  try {
-    const isRegistered = await isUsernameOrEmailRegistered(username, email);
-
-    if (isRegistered.isUsernameRegistered || isRegistered.isEmailRegistered) {
-      res.status(200).json({ success: true, message: 'Request terkirim' });
     } else {
-      res.status(400).json({ error: 'Terjadi kesalahan. Username atau email tidak terdaftar.' });
+      // Jika email belum terdaftar
+      res.render("Add_New_Election", {
+        errorMsg: "Email tidak terdaftar. Silakan gunakan email yang terdaftar.",
+      });
     }
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Terjadi kesalahan dalam memproses permintaan.'});
-  }
+  });
 });
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+function sendInvitationEmail(email) {
+  // Implementasi logika pengiriman email undangan di sini
+  // Misalnya menggunakan Nodemailer atau layanan email lainnya
+  // ...
+}
 
 
 //homepage--------------------------------------------------------------------------------------------------------------------------------
@@ -252,7 +297,9 @@ app.get('/dashboard', async (req, res) => {
 // });
 
 //add new election page--------------------------------------------------------------------------------------------------------------------------------
-//tulis mulai dari sini...
+// app.get('/Add_New_Election', async (req, res) => {
+//   res.render('Add_New_Election')
+// })
 
 
 //requested election page--------------------------------------------------------------------------------------------------------------------------------
