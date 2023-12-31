@@ -356,6 +356,19 @@ app.get("/approved/:electionID", async (req, res) => {
   });
 });
 
+const getName = async (conn, voterID) => {
+  return new Promise((resolve, reject) => {
+    conn.query("SELECT name FROM voter WHERE voterID = ?", voterID, (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+
+}
+
 //results page--------------------------------------------------------------------------------------------------------------------------------
 app.get("/result", async (req, res) => {
   res.render("result");
@@ -374,14 +387,3 @@ const getElections = () => {
   });
 };
 
-const getName = (conn, voterID) => {
-  return new Promise((resolve, reject) => {
-    conn.query("SELECT name FROM voter WHERE voterID = ?", [voterID], (err, result) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(result);
-      }
-    });
-  });
-};
