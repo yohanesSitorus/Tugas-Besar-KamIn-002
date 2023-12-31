@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="css/styles.css" />
+    <title>Approved Election Page</title>
+  </head>
+  <body>
+    <div id="wrapper-approved">
+      <section id="left-sidebar">
+        <h2>Selamat Datang, <%- name[0].name %>.</h2>
+
+        <%- include('nav-link/sidebar'); %>
+      </section>
+      <div class="container-approved">
+        <div class="approved-section">
+          <h2><%- election[0].title %></h2>
+          <p><%- election[0].description %></p>
+          <p><%- election[0].startDate %></p>
+          <p><%- election[0].endDate %></p>
+          <button id="vote-btn" class="vote-button">Vote</button>
+          <form method="post" action="/votecandidate" id="vote-form" class="hidden">
+            <h3>Daftar Kandidat:</h3>
+            <% for(let can of candidate){ %>
+            <div class="radioButton">
+              <input type="radio" id="<%= can.candidateID %>" name="candidate" value="<%= can.candidateID %>" />
+              <label for="<%= can.candidateID %>"><%- can.name %></label>
+            </div>
+            <% } %>
+            <button id="submitVote" type="submit">Submit</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <script>
+      const voteButton = document.getElementById("vote-btn");
+      const voteForm = document.getElementById("vote-form");
+      voteButton.addEventListener("click", () => {
+        voteForm.classList.toggle("hidden");
+        voteButton.classList.toggle("hidden");
+      });
+    </script>
+  </body>
+</html>
