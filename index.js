@@ -132,11 +132,13 @@ app.post("/login", (req, res) => {
       res.cookie("Id_account", user.Id_account);
       res.cookie("email", user.email);
       res.cookie("role", user.role);
+
+      req.session.userID = user.userID;
       
       if (user.role === "ADM") {
         res.redirect("/dashboard-admin");
       } else if (user.role === "VTR") {
-        res.redirect("/dashboard-user");
+        res.render("/dashboard");
       } else {
         res.redirect("/404", { errorMsg: "Akun anda tidak valid, silahkan hubungi admin" });
       }
@@ -235,54 +237,161 @@ app.post("/signup", async (req, res) => {
 });
 
 //dashboard user--------------------------------------------------------------------------------------------------------------------------------
-app.get('/dashboard', async (req, res) => {
-    res.render('dashboard')
-})
-
 // app.get('/dashboard', async (req, res) => {
-  //     try {
-//         // Get the list of elections
-//         const elections = await getElections();
+//     res.render('dashboard')
+// })
 
-//         // Pass the election data to the view
-//         res.render('dashboard', { elections });
-//     } catch (error) {
-//         console.error('Error fetching data from the database:', error);
-//         res.status(500).send('Internal Server Error');
-//     }
-// });
+// Function to get the list of elections for the dashboard
+// Function to get the list of elections for the dashboard
+const getElections = async (voterID) => {
+  return new Promise((resolve, reject) => {
+      const query = `
+          SELECT election.electionID, election.title, election.description, 
+                 COALESCE(participant.requestStatus, 0) AS requestStatus
+          FROM election
+          LEFT JOIN participant ON election.electionID = participant.electionID
+                                 AND participant.voterID = ?
+      `;
+      pool.query(query, [voterID], (err, results) => {
+          if (err) {
+              reject(err);
+          } else {
+              resolve(results);
+          }
+      });
+  });
+};
+
+
+
+app.get('/dashboard', async (req, res) => {
+  try {
+      // Assume user ID is available in req.user.id, adjust this based on your authentication logic
+      // const voterID = req.user.id;
+      const voterID = req.session.userID;
+
+      // Get the list of elections based on the approval status
+      const elections = await getElections(voterID);
+
+      // Pass the election data to the view
+      res.render('dashboard', { elections });
+  } catch (error) {
+      console.error('Error fetching data from the database:', error);
+      res.status(500).send('Internal Server Error');
+  }
+});
 
 //add new election page--------------------------------------------------------------------------------------------------------------------------------
 //tulis mulai dari sini...
 
 
 //requested election page--------------------------------------------------------------------------------------------------------------------------------
-app.get('/requested', async (req, res) => {
-  res.render('requested')
-})
+// app.get('/requested', async (req, res) => {
+//   res.render('requested')
+// })
 
-//approved election page--------------------------------------------------------------------------------------------------------------------------------
-//tulis mulai dari sini...
-
-
-//results page--------------------------------------------------------------------------------------------------------------------------------
-app.get('/result', async (req, res) => {
-  res.render('result')
-})
-
-
-const getElections = () => {
+const getRequestedElection = async (electionID) => {
   return new Promise((resolve, reject) => {
-    const query = 'SELECT electionID, title, description FROM election';
-    pool.query(query, (err, results) => {
+    const query = `
+      SELECT election.electionID, election.title, election.description, 
+             election.startDate, election.endDate
+      FROM election
+      WHERE election.electionID = ?
+    `;
+    pool.query(query, [electionID], (err, results) => {
       if (err) {
         reject(err);
       } else {
-        resolve(results);
+        const requestedElection = results[0];
+        resolve(requestedElection);
       }
     });
   });
 };
+
+
+app.get('/requested/:electionID', async (req, res) => {
+  try {
+    const { electionID } = req.params;
+    
+    const requestedElection = await getRequestedElection(electionID);
+    
+    res.render('requested', { requestedElection });
+  } catch (error) {
+    console.error('Error fetching data from the database:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+app.post('/process-request/accept', async (req, res) => {
+  const { electionID, voterID } = req.body;
+
+  try {
+    
+    const updateQuery = 'UPDATE participant SET requestStatus = 1 WHERE electionID = ? AND voterID = ?';
+    await pool.query(updateQuery, [electionID, voterID]);
+
+    
+    res.redirect('/dashboard');
+  } catch (error) {
+    console.error('Error updating request status:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+app.post('/process-request/reject', async (req, res) => {
+  const { electionID, voterID } = req.body;
+
+  try {
+    
+    const updateQuery = 'UPDATE participant SET requestStatus = -1 WHERE electionID = ? AND voterID = ?';
+    await pool.query(updateQuery, [electionID, voterID]);
+
+    // Redirect to the dashboard or another page
+    res.redirect('/dashboard');
+  } catch (error) {
+    console.error('Error updating request status:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+
+
+//approved election page--------------------------------------------------------------------------------------------------------------------------------
+app.get('/addvote', async (req, res) => {
+  res.render('dashboard')
+})
+//tulis mulai dari sini...
+
+
+//results page--------------------------------------------------------------------------------------------------------------------------------
+// app.get('/result', async (req, res) => {
+//   res.render('result')
+// })
+
+app.get('/result', (req, res) => {
+  // const userId = req.session.userID; // Ambil ID pengguna dari sesi atau permintaan
+  const userId = 5;
+  const query = `
+    SELECT election.title, candidate.name AS winnerName, result.frequency, 
+    (result.frequency / (SELECT COUNT(*) FROM vote WHERE vote.electionID = result.electionID)) * 100 AS winPercentage
+    FROM result
+    INNER JOIN election ON result.electionID = election.electionID
+    INNER JOIN candidate ON result.candidateID = candidate.candidateID
+    INNER JOIN participant ON result.electionID = participant.electionID
+    WHERE participant.voterID = ${userId} AND participant.requestStatus = 1;
+  `;
+
+  pool.query(query, (error, results) => {
+    if (error) throw error;
+    const namaPengguna = "ContohNamaPengguna"; // Gantilah dengan cara Anda mendapatkan nama pengguna
+
+    res.render('result', { namaPengguna, resultData: results });
+  });
+});
+
+
+
 
 
 

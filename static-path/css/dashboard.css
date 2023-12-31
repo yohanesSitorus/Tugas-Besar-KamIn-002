@@ -1,10 +1,8 @@
-
-
 body {
   margin: 0;
-  font-family: 'Material Symbols Rounded', sans-serif;
-  background-color: #333; 
-  color: #fff; 
+  font-family: "Material Symbols Rounded", sans-serif;
+  background-color: #05293c;
+  color: #fff;
   display: flex;
 }
 
@@ -15,7 +13,7 @@ body {
 
 #left-sidebar {
   width: 250px;
-  background-color: #222; 
+  background-color: #00202f;
   color: #fff;
   padding: 20px;
   box-sizing: border-box;
@@ -41,24 +39,33 @@ body {
 .voting-box {
   flex: 1 0 calc(33.33% - 20px);
   box-sizing: border-box;
-  background-color: #444; 
+  background: rgba(255, 255, 255, 0.2);
   padding: 15px;
   text-align: center;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-  transition: background-color 0.3s ease, transform 0.3s ease; 
+  transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .voting-box:hover {
-  background-color: #555; 
-  transform: scale(1.05); 
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.03);
 }
 
 .request-section {
   flex: 1 0 100%;
   margin-top: 20px;
-  border-top: 2px solid #666; 
-  padding-top: 20px; 
+  border-top: 2px solid #666;
+  padding-top: 20px;
 }
-
-
+a {
+  text-decoration: none;
+  color: white;
+  font-weight: 500;
+}
+h2 {
+  font-weight: 600;
+}
+img {
+  scale: 100%;
+}

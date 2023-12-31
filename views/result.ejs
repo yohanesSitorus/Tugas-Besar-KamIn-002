@@ -17,7 +17,7 @@
       <%- include('nav-link/sidebar'); %>
     </section>
     <div class="container">
-      <div class="result-section">
+      <!-- <div class="result-section">
         <h2>Nama Voting</h2>
         <p>Kandidat Pemenang: [Nama Kandidat]</p>
         <p>Persentase Kemenangan: [Persentase]%</p>
@@ -31,7 +31,14 @@
         <h2>Nama Voting</h2>
         <p>Kandidat Pemenang: [Nama Kandidat]</p>
         <p>Persentase Kemenangan: [Persentase]%</p>
-      </div>
+      </div> -->
+      <% resultData.forEach(result => { %>
+        <div class="result-section">
+          <h2><%= result.title %></h2>
+          <p>Kandidat Pemenang: <%= result.winnerName %></p>
+          <p>Persentase Kemenangan: <%= result.winPercentage %>%</p>
+        </div>
+      <% }); %>
     </div>
   </div>
 </body>
