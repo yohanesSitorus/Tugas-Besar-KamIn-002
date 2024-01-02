@@ -474,8 +474,8 @@ app.get('/result', (req, res) => {
     FROM result
     INNER JOIN election ON result.electionID = election.electionID
     INNER JOIN candidate ON result.candidateID = candidate.candidateID
-    INNER JOIN participant ON result.electionID = participant.electionID
-    WHERE participant.voterID = ${userId} AND participant.requestStatus = 1;
+    INNER JOIN participation ON result.electionID = participation.electionID
+    WHERE participation.voterID = ${userId} AND participation.requestStatus = 1;
   `;
 
   pool.query(query, (error, results) => {
