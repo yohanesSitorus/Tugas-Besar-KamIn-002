@@ -2,35 +2,61 @@
 
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Requested Election</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,1,0" />
-    <link rel="stylesheet" href="/css/default-styling.css" />
-    <link rel="stylesheet" href="/css/dashboard.css" />
-
-    <link rel="stylesheet" href="/css/requested.css" />
-  </head>
-  <body>
-    <div id="wrapper">
-      <section id="left-sidebar">
-        <h2>Selamat Datang, [Nama Pengguna].</h2>
-
-        <%- include('nav-link/sidebar'); %>
-      </section>
-      <div class="container">
-        <div class="requested-section">
-          <h2>Judul Election Requested</h2>
-          <p>Deskripsi Election Requested</p>
-          <p>Start Date: DD/MM/YYYY</p>
-          <p>End Date: DD/MM/YYYY</p>
+<head>
+  <meta charset="UTF-8">
+  <title>Requested Election</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,1,0" />
+  <link rel="stylesheet" href="/css/default-styling.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  
+  <link rel="stylesheet" href="/css/requested.css">
+</head>
+<body>
+  <div id="wrapper">
+    <section id="left-sidebar">
+      <h2>Selamat Datang, <%//= namaPengguna //%>.</h2>
+      
+      <%- include('nav-link/sidebar'); %>
+    </section>
+    <div class="container">
+      <div class="requested-section">
+        <h2><%= requestedElection.title %></h2>
+        <p><%= requestedElection.description %></p>
+        <!-- <p>Start Date: <%//= formatDate(requestedElection.startDate) %></p> -->
+        <p>Start Date: <%= requestedElection.startDate %></p>
+        <!-- <p>End Date: <%//= formatDate(requestedElection.endDate) %></p> -->
+        <p>End Date: <%= requestedElection.endDate %></p>
+        <div class="action-buttons">
           <div class="action-buttons">
-            <button class="approve-button">Approve</button>
-            <button class="reject-button">Reject</button>
+            <!-- Form for accepting the request -->
+            <form action="/process-request/accept" method="post" style="display: inline;">
+              <input  name="electionID" value="<%= requestedElection.electionID %>">
+              <input  name="voterID" value="<%= requestedElection.voterID %>">
+              <button type="submit" class="approve-button">Accept</button>
+            </form>
+          
+            <!-- Form for rejecting the request -->
+            <form action="/process-request/reject" method="post" style="display: inline;">
+              <input type="hidden" name="electionID" value="<%= requestedElection.electionID %>">
+              <input type="hidden" name="voterID" value="<%= requestedElection.voterID %>">
+              <button type="submit" class="reject-button">Reject</button>
+            </form>
           </div>
         </div>
       </div>
     </div>
-  </body>
+  </div>
+
+  <script>
+   
+    function formatDate(dateString) {
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', options);
+    }
+
+  </script>
+
+</body>
 </html>
