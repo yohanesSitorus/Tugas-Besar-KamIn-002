@@ -329,25 +329,6 @@ const getElections = async (voterID) => {
   });
 };
 
-
-
-app.get('/dashboard', async (req, res) => {
-  try {
-      // Assume user ID is available in req.user.id, adjust this based on your authentication logic
-      // const voterID = req.user.id;
-      const voterID = req.session.userID;
-
-      // Get the list of elections based on the approval status
-      const elections = await getElections(voterID);
-
-      // Pass the election data to the view
-      res.render('dashboard', { elections });
-  } catch (error) {
-      console.error('Error fetching data from the database:', error);
-      res.status(500).send('Internal Server Error');
-  }
-});
-
 //add new election page--------------------------------------------------------------------------------------------------------------------------------
 // app.get('/Add_New_Election', async (req, res) => {
 //   res.render('Add_New_Election')
