@@ -1,73 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Halaman Voting</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,1,0" />
-    <link rel="stylesheet" href="/css/default-styling.css" />
-    <link rel="stylesheet" href="/css/dashboard.css" />
-  </head>
-  <body>
-    <div id="wrapper">
-      <section id="left-sidebar">
-        <h2>Selamat Datang, ${nama-lengkap}.</h2>
-        <%- include('nav-link/sidebar'); %>
-      </section>
-      <div class="container">
-        <div class="voting-section">
-          <%// elections.forEach(election => { //%>
-          <div class="voting-box">
-            <a href="/addvote/<%=// election.electionID %>">
-              <h2><%=// election.title //%></h2>
-              <p><%=//election.description //%></p>
-            </a>
-          </div>
-          <%// }); //%>
-        </div>
+<head>
+  <meta charset="UTF-8">
+  <title>Halaman Voting</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,1,0" />
+  <link rel="stylesheet" href="/css/default-styling.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
 
-        <div class="voting-section">
-          <div class="voting-box">
-            <a href="/addvote">
-              <h2>Judul Voting 1</h2>
-              <img src="gambar1.jpg" alt="Gambar 1" />
-            </a>
+</head>
+<body>
+  <div id="wrapper">
+    <section id="left-sidebar">
+      <h2>Selamat Datang, nama</h2>
+      <%- include('nav-link/sidebar'); %>
+    </section>
+    <div class="container">
+
+      <div class="voting-section">
+        <% elections.forEach(election => { %>
+          <% if (election.requestStatus === 1) { %>
+            <div class="voting-box">
+                <a href="/approve/<%= election.electionID %>">
+                    <h2><%= election.title %></h2>
+                    <p><%= election.description %></p>
+                </a>
+            </div>
+            <% } %>
+        <% }); %>
           </div>
-          <div class="voting-box">
-            <a href="/addvote">
-              <h2>Judul Voting 2</h2>
-              <img src="gambar1.jpg" alt="Gambar 1" />
-            </a>
-          </div>
-          <div class="voting-box">
-            <a href="/addvote">
-              <h2>Judul Voting 3</h2>
-              <img src="gambar1.jpg" alt="Gambar 1" />
-            </a>
-          </div>
-          <div class="request-section">
-            <p>Request</p>
-          </div>
-          <div class="voting-box">
-            <a href="/requested">
-              <h2>Judul Voting 4</h2>
-              <img src="gambar4.jpg" alt="Gambar 4" />
-            </a>
-          </div>
-          <div class="voting-box">
-            <a href="/requested">
-              <h2>Judul Voting 5</h2>
-              <img src="gambar5.jpg" alt="Gambar 5" />
-            </a>
-          </div>
-          <div class="voting-box">
-            <a href="/requested">
-              <h2>Judul Voting 6</h2>
-              <img src="gambar5.jpg" alt="Gambar 5" />
-            </a>
-          </div>
+        <div class="request-section">
+          <p>Request</p>
         </div>
-      </div>
+          
+          <% elections.forEach(election => { %>
+              <% if (election.requestStatus === 0 ) { %>
+                  <div class="voting-box">
+                      <a href="/requested/<%= election.electionID %>">
+                          <h2><%= election.title %></h2>
+                          <p><%= election.description %></p>
+                      </a>
+                  </div>
+              <% } %>
+          <% }); %>
+        
+      
     </div>
-  </body>
+  </div>
+</body>
 </html>
