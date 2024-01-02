@@ -304,10 +304,10 @@ const getElections = async (voterID) => {
   return new Promise((resolve, reject) => {
       const query = `
           SELECT election.electionID, election.title, election.description, 
-                 COALESCE(participant.requestStatus, 0) AS requestStatus
+                 COALESCE(participation.requestStatus, 0) AS requestStatus
           FROM election
-          LEFT JOIN participant ON election.electionID = participant.electionID
-                                 AND participant.voterID = ?
+          LEFT JOIN participation ON election.electionID = participation.electionID
+                                 AND participation.voterID = ?
       `;
       pool.query(query, [voterID], (err, results) => {
           if (err) {
@@ -387,7 +387,7 @@ app.post('/process-request/accept', async (req, res) => {
 
   try {
     
-    const updateQuery = 'UPDATE participant SET requestStatus = 1 WHERE electionID = ? AND voterID = ?';
+    const updateQuery = 'UPDATE participation SET requestStatus = 1 WHERE electionID = ? AND voterID = ?';
     await pool.query(updateQuery, [electionID, voterID]);
 
     
@@ -405,7 +405,7 @@ app.post('/process-request/reject', async (req, res) => {
 
   try {
     
-    const updateQuery = 'UPDATE participant SET requestStatus = -1 WHERE electionID = ? AND voterID = ?';
+    const updateQuery = 'UPDATE participation SET requestStatus = -1 WHERE electionID = ? AND voterID = ?';
     await pool.query(updateQuery, [electionID, voterID]);
 
     // Redirect to the dashboard or another page
@@ -473,8 +473,8 @@ app.get('/result', (req, res) => {
     FROM result
     INNER JOIN election ON result.electionID = election.electionID
     INNER JOIN candidate ON result.candidateID = candidate.candidateID
-    INNER JOIN participant ON result.electionID = participant.electionID
-    WHERE participant.voterID = ${userId} AND participant.requestStatus = 1;
+    INNER JOIN participation ON result.electionID = participation.electionID
+    WHERE participation.voterID = ${userId} AND participation.requestStatus = 1;
   `;
 
   pool.query(query, (error, results) => {
