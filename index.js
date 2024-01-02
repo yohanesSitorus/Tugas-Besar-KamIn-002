@@ -308,13 +308,45 @@ app.get("/dashboard-user", async (req, res) => {
 //         // Get the list of elections
 //         const elections = await getElections();
 
-//         // Pass the election data to the view
-//         res.render('dashboard', { elections });
-//     } catch (error) {
-//         console.error('Error fetching data from the database:', error);
-//         res.status(500).send('Internal Server Error');
-//     }
-// });
+// Function to get the list of elections for the dashboard
+// Function to get the list of elections for the dashboard
+const getElections = async (voterID) => {
+  return new Promise((resolve, reject) => {
+      const query = `
+          SELECT election.electionID, election.title, election.description, 
+                 COALESCE(participant.requestStatus, 0) AS requestStatus
+          FROM election
+          LEFT JOIN participant ON election.electionID = participant.electionID
+                                 AND participant.voterID = ?
+      `;
+      pool.query(query, [voterID], (err, results) => {
+          if (err) {
+              reject(err);
+          } else {
+              resolve(results);
+          }
+      });
+  });
+};
+
+
+
+app.get('/dashboard', async (req, res) => {
+  try {
+      // Assume user ID is available in req.user.id, adjust this based on your authentication logic
+      // const voterID = req.user.id;
+      const voterID = req.session.userID;
+
+      // Get the list of elections based on the approval status
+      const elections = await getElections(voterID);
+
+      // Pass the election data to the view
+      res.render('dashboard', { elections });
+  } catch (error) {
+      console.error('Error fetching data from the database:', error);
+      res.status(500).send('Internal Server Error');
+  }
+});
 
 //add new election page--------------------------------------------------------------------------------------------------------------------------------
 // app.get('/Add_New_Election', async (req, res) => {
@@ -374,16 +406,17 @@ app.get("/result", async (req, res) => {
   res.render("result");
 });
 
-const getElections = () => {
-  return new Promise((resolve, reject) => {
-    const query = "SELECT electionID, title, description FROM election";
-    pool.query(query, (err, results) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(results);
-      }
-    });
-  });
-};
+// const getElections = () => {
+//   return new Promise((resolve, reject) => {
+//     const query = "SELECT electionID, title, description FROM election";
+//     pool.query(query, (err, results) => {
+//       if (err) {
+//         reject(err);
+//       } else {
+//         const requestedElection = results[0];
+//         resolve(requestedElection);
+//       }
+//     });
+//   });
+// };
 
