@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link rel="stylesheet" href="/css/styles.css"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/styles.css" />
     <title>Approved Election Page</title>
   </head>
   <body>
@@ -20,7 +20,7 @@
           <p><%- election[0].startDate %></p>
           <p><%- election[0].endDate %></p>
           <button id="vote-btn" class="vote-button">Vote</button>
-          <form method="post" action="/votecandidate" id="vote-form" class="hidden">
+          <form method="post" action="/dashboard-user" id="vote-form" class="hidden">
             <h3>Daftar Kandidat:</h3>
             <% for(let can of candidate){ %>
             <div class="radioButton">
@@ -28,17 +28,54 @@
               <label for="<%= can.candidateID %>"><%- can.name %></label>
             </div>
             <% } %>
+            <input type="hidden" name="encryptedCandidate" id="encryptedCandidate" />
+            <input type="hidden" name="electionID" value="<%= election[0].electionID %>" />
             <button id="submitVote" type="submit">Submit</button>
           </form>
         </div>
       </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/node-forge@1.0.0/dist/forge.min.js"></script>
+
     <script>
-      const voteButton = document.getElementById("vote-btn");
-      const voteForm = document.getElementById("vote-form");
-      voteButton.addEventListener("click", () => {
-        voteForm.classList.toggle("hidden");
-        voteButton.classList.toggle("hidden");
+      document.addEventListener("DOMContentLoaded", function () {
+        const voteButton = document.getElementById("vote-btn");
+        const voteForm = document.getElementById("vote-form");
+        voteButton.addEventListener("click", () => {
+          voteForm.classList.toggle("hidden");
+          voteButton.classList.toggle("hidden");
+        });
+
+        voteForm.addEventListener("submit", function (event) {
+          // Mendapatkan nilai kandidat yang dipilih
+          const selectedCandidate = document.querySelector('input[name="candidate"]:checked');
+
+          // Memeriksa apakah kandidat telah dipilih
+          if (!selectedCandidate) {
+            alert("Silakan pilih seorang kandidat sebelum memberikan suara.");
+            event.preventDefault(); // Mencegah pengiriman formulir jika kandidat tidak dipilih
+            return;
+          }
+
+          // Mengenkripsi nilai kandidat yang dipilih menggunakan node-forge
+          const publicKeyPEM = `<%= publicKey %>`;
+          const encryptedValue = encryptWithForge(publicKeyPEM, selectedCandidate.value);
+
+          // Menetapkan nilai terenkripsi sebagai nilai input dalam formulir
+          document.getElementById("encryptedCandidate").value = encryptedValue;
+
+          voteForm.classList.add("hidden");
+          voteButton.classList.remove("hidden");
+        });
+
+        // Fungsi untuk mengenkripsi pesan menggunakan node-forge
+        function encryptWithForge(publicKeyPEM, message) {
+          const publicKey = forge.pki.publicKeyFromPem(publicKeyPEM);
+          const encrypted = publicKey.encrypt(message, "RSA-OAEP", {
+            md: forge.md.sha256.create(),
+          });
+          return forge.util.encode64(encrypted);
+        }
       });
     </script>
   </body>

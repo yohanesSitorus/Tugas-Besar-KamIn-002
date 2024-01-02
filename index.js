@@ -302,38 +302,38 @@ app.post("/signup", async (req, res) => {
 
 const getElections = async (voterID) => {
   return new Promise((resolve, reject) => {
-      const query = `
+    const query = `
           SELECT election.electionID, election.title, election.description, 
                  COALESCE(participation.requestStatus, 0) AS requestStatus
           FROM election
           LEFT JOIN participation ON election.electionID = participation.electionID
                                  AND participation.voterID = ?
       `;
-      pool.query(query, [voterID], (err, results) => {
-          if (err) {
-              reject(err);
-          } else {
-              resolve(results);
-          }
-      });
+    pool.query(query, [voterID], (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results);
+      }
+    });
   });
 };
 
-app.get('/dashboard-user', async (req, res) => {
+app.get("/dashboard-user", async (req, res) => {
   try {
-      
-      const voterID = req.session.userID;
+    const voterID = req.session.userID;
 
-      // const name = await getName(conn, req.session.userID);
+    // const name = await getName(conn, req.session.userID);
 
-      
-      const elections = await getElections(voterID);
+    const elections = await getElections(voterID);
 
-      
-      res.render('dashboard', { elections});
+    res.render("dashboard", {
+      elections: elections,
+      errorMsg: "",
+    });
   } catch (error) {
-      console.error('Error fetching data from the database:', error);
-      res.status(500).send('Internal Server Error');
+    console.error("Error fetching data from the database:", error);
+    res.status(500).send("Internal Server Error");
   }
 });
 
@@ -366,53 +366,49 @@ const getRequestedElection = async (electionID) => {
   });
 };
 
-
-app.get('/requested/:electionID', async (req, res) => {
+app.get("/requested/:electionID", async (req, res) => {
   try {
     const { electionID } = req.params;
-    
+
     const requestedElection = await getRequestedElection(electionID);
-    
-    res.render('requested', { requestedElection });
+
+    res.render("requested", { requestedElection });
   } catch (error) {
-    console.error('Error fetching data from the database:', error);
-    res.status(500).send('Internal Server Error');
+    console.error("Error fetching data from the database:", error);
+    res.status(500).send("Internal Server Error");
   }
 });
 
-app.post('/process-request/accept', async (req, res) => {
+app.post("/process-request/accept", async (req, res) => {
   const { electionID } = req.body;
 
   const voterID = req.session.userID;
 
   try {
-    
-    const updateQuery = 'UPDATE participation SET requestStatus = 1 WHERE electionID = ? AND voterID = ?';
+    const updateQuery = "UPDATE participation SET requestStatus = 1 WHERE electionID = ? AND voterID = ?";
     await pool.query(updateQuery, [electionID, voterID]);
 
-    
-    res.redirect('/dashboard-user');
+    res.redirect("/dashboard-user");
   } catch (error) {
-    console.error('Error updating request status:', error);
-    res.status(500).send('Internal Server Error');
+    console.error("Error updating request status:", error);
+    res.status(500).send("Internal Server Error");
   }
 });
 
-app.post('/process-request/reject', async (req, res) => {
+app.post("/process-request/reject", async (req, res) => {
   const { electionID } = req.body;
 
   const voterID = req.session.userID;
 
   try {
-    
-    const updateQuery = 'UPDATE participation SET requestStatus = -1 WHERE electionID = ? AND voterID = ?';
+    const updateQuery = "UPDATE participation SET requestStatus = -1 WHERE electionID = ? AND voterID = ?";
     await pool.query(updateQuery, [electionID, voterID]);
 
     // Redirect to the dashboard or another page
-    res.redirect('/dashboard-user');
+    res.redirect("/dashboard-user");
   } catch (error) {
-    console.error('Error updating request status:', error);
-    res.status(500).send('Internal Server Error');
+    console.error("Error updating request status:", error);
+    res.status(500).send("Internal Server Error");
   }
 });
 
@@ -421,7 +417,8 @@ app.get("/approved/:electionID", async (req, res) => {
   const { electionID } = req.params;
   const conn = await dbConnect();
   const name = await getName(conn, req.session.userID);
-  const electionQuery = "SELECT `title`, `description`, `startDate`, `endDate` FROM election WHERE `electionID` = ?";
+  const pubKey = await getPublicKey(conn);
+  const electionQuery = "SELECT * FROM election WHERE `electionID` = ?";
   const electionParam = [electionID];
   pool.query(electionQuery, electionParam, (error, resultsElection) => {
     if (error) {
@@ -439,12 +436,82 @@ app.get("/approved/:electionID", async (req, res) => {
             name: name,
             election: election,
             candidate: candidate,
+            publicKey: pubKey[0].publicKey,
           });
         }
       });
     }
   });
 });
+
+// Fungsi untuk mengenkripsi pesan menggunakan node-forge
+function encryptWithForge(publicKeyPEM, message) {
+  try {
+    const publicKey = forge.pki.publicKeyFromPem(publicKeyPEM);
+    const encrypted = publicKey.encrypt(message, "RSA-OAEP", {
+      md: forge.md.sha256.create(),
+    });
+    return forge.util.encode64(encrypted);
+  } catch (error) {
+    console.error("Error encrypting message:", error);
+    throw error;
+  }
+}
+
+// Fungsi untuk mendekripsi pesan menggunakan node-forge
+function decryptWithForge(privateKeyPEM, encryptedMessage) {
+  try {
+    const privateKey = forge.pki.privateKeyFromPem(privateKeyPEM);
+    const encryptedBytes = forge.util.decode64(encryptedMessage);
+    const decrypted = privateKey.decrypt(encryptedBytes, "RSA-OAEP", {
+      md: forge.md.sha256.create(),
+    });
+    return decrypted;
+  } catch (error) {
+    console.error("Error decrypting message:", error);
+    throw error;
+  }
+}
+
+app.post("/dashboard-user", async (req, res) => {
+  const { candidate, encryptedCandidate, electionID } = req.body;
+  const conn = await dbConnect();
+  const privateKeyPEM = await getPrivateKey(conn);
+
+  const privKey = privateKeyPEM[0].privateKey;
+  const decryptedMessage = decryptWithForge(privKey, encryptedCandidate);
+
+  const voterID = req.session.userID;
+  const elections = await getElections(voterID);
+
+  res.render("dashboard", { elections, errorMsg: "" });
+
+  if (candidate == decryptedMessage) {
+    const insertVote = await insVote(conn, req.session.userID, electionID, encryptedCandidate);
+    console.log("Vote berhasil");
+    res.render("dashboard", {
+      elections: elections,
+      errorMsg: "",
+    });
+  } else {
+    res.render("dashboard", {
+      elections: elections,
+      errorMsg: "Vote gagal",
+    });
+  }
+});
+
+const insVote = async (conn, voterID, electionID, candidate) => {
+  return new Promise((resolve, reject) => {
+    conn.query("INSERT INTO vote (voterID, electionID, candidateID) VALUES (?, ?, ?)", [voterID, electionID, candidate], (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
 
 const getName = async (conn, voterID) => {
   return new Promise((resolve, reject) => {
@@ -456,16 +523,38 @@ const getName = async (conn, voterID) => {
       }
     });
   });
+};
 
-}
+const getPrivateKey = async (conn) => {
+  return new Promise((resolve, reject) => {
+    conn.query("SELECT privateKey FROM platform", (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
+
+const getPublicKey = async (conn) => {
+  return new Promise((resolve, reject) => {
+    conn.query("SELECT publicKey FROM platform", (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
 
 //results page--------------------------------------------------------------------------------------------------------------------------------
 // app.get("/result", async (req, res) => {
 //   res.render("result");
 // });
 
-
-app.get('/result', (req, res) => {
+app.get("/result", (req, res) => {
   // const userId = req.session.userID; // Ambil ID pengguna dari sesi atau permintaan
   const userId = 5;
   const query = `
@@ -474,30 +563,30 @@ app.get('/result', (req, res) => {
     FROM result
     INNER JOIN election ON result.electionID = election.electionID
     INNER JOIN candidate ON result.candidateID = candidate.candidateID
-    INNER JOIN participant ON result.electionID = participant.electionID
-    WHERE participant.voterID = ${userId} AND participant.requestStatus = 1;
+    INNER JOIN participation ON result.electionID = participation.electionID
+    WHERE participation.voterID = ${userId} AND participation.requestStatus = 1;
   `;
 
   pool.query(query, (error, results) => {
     if (error) throw error;
     const namaPengguna = "ContohNamaPengguna"; // Gantilah dengan cara Anda mendapatkan nama pengguna
 
-    res.render('result', { namaPengguna, resultData: results });
+    res.render("result", { namaPengguna, resultData: results });
   });
-})
+});
 
 //KODE YG BAKAL DIPAKE NNTI UNTK app.get('/result')
-//result.frequency, 
+//result.frequency,
 //(result.frequency / (SELECT COUNT(*) FROM vote WHERE vote.electionID = result.electionID)) * 100 AS winPercentage
 
 //app.get('/result', (req, res) => {
-  // const userId = req.session.userID; // Ambil ID pengguna dari sesi atau permintaan
+// const userId = req.session.userID; // Ambil ID pengguna dari sesi atau permintaan
 //   const userId = 5;
 //   const query = `
-//     SELECT 
-//       election.title, 
-//       candidate.name AS winnerName, 
-//       candidate.candidateID 
+//     SELECT
+//       election.title,
+//       candidate.name AS winnerName,
+//       candidate.candidateID
 //     FROM result
 //     INNER JOIN election ON result.electionID = election.electionID
 //     INNER JOIN candidate ON result.candidateID = candidate.candidateID
