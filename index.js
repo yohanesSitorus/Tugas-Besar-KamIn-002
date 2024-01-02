@@ -324,13 +324,19 @@ app.get('/dashboard-user', async (req, res) => {
       
       const voterID = req.session.userID;
 
-      // const name = await getName(conn, req.session.userID);
+      const name = await getName(conn, req.session.userID);
 
-      
+
       const elections = await getElections(voterID);
 
       
-      res.render('dashboard', { elections});
+      // res.render('dashboard', { elections});
+
+      res.render("dashboard", {
+        elections,
+        name: name,
+      });
+
   } catch (error) {
       console.error('Error fetching data from the database:', error);
       res.status(500).send('Internal Server Error');
@@ -370,10 +376,17 @@ const getRequestedElection = async (electionID) => {
 app.get('/requested/:electionID', async (req, res) => {
   try {
     const { electionID } = req.params;
-    
+
+    const name = await getName(conn, req.session.userID);
+
     const requestedElection = await getRequestedElection(electionID);
     
-    res.render('requested', { requestedElection });
+    // res.render('requested', { name ,requestedElection });
+
+    res.render("requested", {
+      requestedElection,
+      name: name,
+    });
   } catch (error) {
     console.error('Error fetching data from the database:', error);
     res.status(500).send('Internal Server Error');
@@ -401,7 +414,7 @@ app.post('/process-request/accept', async (req, res) => {
 app.post('/process-request/reject', async (req, res) => {
   const { electionID } = req.body;
 
-  const voterID = req.session.userID;
+  const voterID = 10;
 
   try {
     
