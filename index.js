@@ -464,6 +464,7 @@ const getName = async (conn, voterID) => {
 //   res.render("result");
 // });
 
+
 app.get('/result', (req, res) => {
   // const userId = req.session.userID; // Ambil ID pengguna dari sesi atau permintaan
   const userId = 5;
@@ -473,8 +474,8 @@ app.get('/result', (req, res) => {
     FROM result
     INNER JOIN election ON result.electionID = election.electionID
     INNER JOIN candidate ON result.candidateID = candidate.candidateID
-    INNER JOIN participation ON result.electionID = participation.electionID
-    WHERE participation.voterID = ${userId} AND participation.requestStatus = 1;
+    INNER JOIN participant ON result.electionID = participant.electionID
+    WHERE participant.voterID = ${userId} AND participant.requestStatus = 1;
   `;
 
   pool.query(query, (error, results) => {
@@ -483,5 +484,72 @@ app.get('/result', (req, res) => {
 
     res.render('result', { namaPengguna, resultData: results });
   });
-});
+})
 
+//KODE YG BAKAL DIPAKE NNTI UNTK app.get('/result')
+//result.frequency, 
+//(result.frequency / (SELECT COUNT(*) FROM vote WHERE vote.electionID = result.electionID)) * 100 AS winPercentage
+
+//app.get('/result', (req, res) => {
+  // const userId = req.session.userID; // Ambil ID pengguna dari sesi atau permintaan
+//   const userId = 5;
+//   const query = `
+//     SELECT 
+//       election.title, 
+//       candidate.name AS winnerName, 
+//       candidate.candidateID 
+//     FROM result
+//     INNER JOIN election ON result.electionID = election.electionID
+//     INNER JOIN candidate ON result.candidateID = candidate.candidateID
+//     INNER JOIN participation ON result.electionID = participation.electionID
+//     WHERE participation.voterID = ${userId} AND participation.requestStatus = 1;
+//   `;
+
+//   pool.query(query, (error, results) => {
+//     if (error) throw error;
+//     const namaPengguna = "ContohNamaPengguna"; // Gantilah dengan cara Anda mendapatkan nama pengguna
+
+//     res.render('result', { namaPengguna, resultData: results });
+//   });
+// });
+
+// const getCandidateFrequency = async (candidateID) => {
+
+//   return new Promise((resolve, reject) => {
+//     const query = `
+//       SELECT COUNT(resultID)
+//       FROM result
+//       WHERE electionID = ? and candidateID = ?
+//     `;
+//     const params = [electionID, candidateID] ;
+//     pool.query(query, params, (err, results) => {
+//       if (err) {
+//         reject(err);
+//       } else {
+//         const frequency = results;
+//         resolve(frequency);
+//       }
+//     });
+//   });
+//   // console.log(frequency) ;
+// };
+// const getCandidateFrequency = async (candidateID) => {
+
+//   return new Promise((resolve, reject) => {
+//     const query = `
+//       SELECT COUNT(resultID)
+//       FROM result
+//       WHERE electionID = ? and candidateID = ?
+//     `;
+//     const params = [electionID, candidateID] ;
+//     pool.query(query, params, (err, results) => {
+//       if (err) {
+//         reject(err);
+//       } else {
+//         const frequency = results;
+//         resolve(frequency);
+//       }
+//     });
+//   });
+//   // console.log(frequency) ;
+// };
