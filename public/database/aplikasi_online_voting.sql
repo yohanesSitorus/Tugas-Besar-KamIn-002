@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 02, 2024 at 01:36 PM
+-- Generation Time: Jan 02, 2024 at 02:29 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.1.17
 
@@ -123,9 +123,28 @@ INSERT INTO `platform` (`publicKey`, `privateKey`) VALUES
 CREATE TABLE `result` (
   `resultID` int(11) NOT NULL,
   `electionID` int(11) NOT NULL,
-  `candidateID` int(11) NOT NULL,
-  `frequency` int(11) NOT NULL
+  `candidateID` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `result`
+--
+
+INSERT INTO `result` (`resultID`, `electionID`, `candidateID`) VALUES
+(1, 1, 1),
+(2, 1, 1),
+(3, 1, 1),
+(4, 1, 1),
+(5, 1, 2),
+(6, 1, 2),
+(7, 1, 3),
+(8, 1, 3),
+(9, 1, 3),
+(10, 1, 4),
+(11, 1, 4),
+(12, 1, 4),
+(13, 1, 5),
+(14, 1, 5);
 
 -- --------------------------------------------------------
 
@@ -284,7 +303,7 @@ ALTER TABLE `participation`
 -- AUTO_INCREMENT for table `result`
 --
 ALTER TABLE `result`
-  MODIFY `resultID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `resultID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `submittedelection`
