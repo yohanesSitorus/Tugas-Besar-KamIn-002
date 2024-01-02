@@ -128,8 +128,24 @@ function sendInvitationEmail(email) {
 
 //homepage--------------------------------------------------------------------------------------------------------------------------------
 app.get("/", async (req, res) => {
+  // const keyPairS = forge.pki.rsa.generateKeyPair({ bits: 2048 });
+  // const keyPub = forge.pki.publicKeyToPem(keyPairS.publicKey);
+  // const keyPriv = forge.pki.privateKeyToPem(keyPairS.privateKey);
+  // const insertK = await insertKey(conn, keyPub, keyPriv);
   res.render("home");
 });
+
+const insertKey = async (conn, keyPub, keyPriv) => {
+  return new Promise((resolve, reject) => {
+    conn.query("INSERT INTO platform (publicKey, privateKey) VALUES (?, ?)", [keyPub, keyPriv], (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
 
 //login page--------------------------------------------------------------------------------------------------------------------------------
 app.get("/login", async (req, res) => {
