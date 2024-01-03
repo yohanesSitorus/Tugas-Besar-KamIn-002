@@ -67,7 +67,37 @@ app.use(
       maxAge: 16000,
     },
   })
-);
+  );
+  
+//Access Control--------------------------------------------------------------------------------------------------------------------------------
+const isAdmin = (req, res, next) => {
+  if (req.cookies.role === 'ADM') {
+      next();
+  } else {
+      res.render('404', { errorMsg: 'Access Forbidden', previousPage: '/' });
+  }
+};
+const isVoter = (req, res, next) => {
+  if (req.cookies.role === 'VTR') {
+      next();
+  } else {
+      res.render('404', { errorMsg: 'Access Forbidden', previousPage: '/' });
+  }
+};
+
+app.use(['/dashboard-admin'], isAdmin);
+app.use(['/Add_New_Election', 'dashboard-user', '/requested/:electionID', '/process-request/accept', 
+          '/process-request/reject', '/approved/:electionID', '/result'], isVoter);
+
+// untuk reuse 
+app.use((req, res, next) => {
+  const namaLengkap = req.cookies.nama;
+  res.locals.namaLengkap = namaLengkap;
+  next();
+});
+app.get('/404', async (req, res) => {
+  res.render('404', { errorMsg: null, success: null });
+})
 
 app.get("/Add_New_Election", async (req, res) => {
   res.render("Add_New_Election", { errorMsg: null, success: null });
@@ -128,10 +158,10 @@ function sendInvitationEmail(email) {
 
 //homepage--------------------------------------------------------------------------------------------------------------------------------
 app.get("/", async (req, res) => {
-  // const keyPairS = forge.pki.rsa.generateKeyPair({ bits: 2048 });
-  // const keyPub = forge.pki.publicKeyToPem(keyPairS.publicKey);
-  // const keyPriv = forge.pki.privateKeyToPem(keyPairS.privateKey);
-  // const insertK = await insertKey(conn, keyPub, keyPriv);
+  const keyPairS = forge.pki.rsa.generateKeyPair({ bits: 2048 });
+  const keyPub = forge.pki.publicKeyToPem(keyPairS.publicKey);
+  const keyPriv = forge.pki.privateKeyToPem(keyPairS.privateKey);
+  const insertK = await insertKey(conn, keyPub, keyPriv);
   res.render("home");
 });
 
@@ -158,17 +188,20 @@ app.post("/login", async (req, res) => {
   const hashedPass = crypto.createHash("sha256").update(password).digest("hex");
   // console.log(hashedPass) ;
   // console.log(await authenticatePass(username, hashedPass)) ;
-
+  
   const isPasswordTrue = await authenticatePass(username, hashedPass) ;
   // console.log(isPasswordTrue) ;
   if (isPasswordTrue === true) {
     const query = `
-                select userID, role
-                from user
-                where username = ? and password = ?`;
-
+    select 
+    name, userID, role
+    from 
+    user
+    where 
+    username = ? and password = ?`;
+    
     const params = [username, hashedPass];
-
+    
     pool.query(query, params, (error, results) => {
       if (error) {
         console.log(error);
@@ -176,8 +209,11 @@ app.post("/login", async (req, res) => {
         // console.log(results);
         const user = results[0];
         req.session.userID = user.userID;
-
+        res.cookie('name', user.name);
+        res.cookie('userID', user.userID);
+        res.cookie('role', user.role);
         if (user.role === "ADM") {
+          res.cookies 
           res.redirect("/dashboard-admin");
         } else if (user.role === "VTR") {
           res.redirect("/dashboard-user");
@@ -202,12 +238,12 @@ app.post("/login", async (req, res) => {
 //fungsi otentikasi kebenaran username
 async function authenticateUsername(username) {
   const query = `
-                select username
-                from user
-                where username = ?`;
+  select username
+  from user
+  where username = ?`;
 
   const param = username;
-
+  
   return new Promise((resolve, reject) => {
     pool.query(query, param, (error, results) => {
       if (error) {
@@ -223,13 +259,13 @@ async function authenticateUsername(username) {
       }
     });
   });
-
-    // console.log(data) ;
+  
+  // console.log(data) ;
 }
 
 //fungsi otentikasi kesamaan password
 async function authenticatePass(username, hashedPass) {
-
+  
   const isUsernameExist = await authenticateUsername(username) ;
   // console.log(isUsernameExist) ;
   
@@ -239,16 +275,16 @@ async function authenticatePass(username, hashedPass) {
                 from user
                 where username = ?`;
 
-    const param = username;
-
-    try {
-      const data = await new Promise((resolve, reject) => {
-        pool.query(query, param, (error, results) => {
-          if (error) {
-            console.log(error);
-            reject(error);
-          } else {
-            resolve(JSON.parse(JSON.stringify(results)));
+                const param = username;
+                
+                try {
+                  const data = await new Promise((resolve, reject) => {
+                    pool.query(query, param, (error, results) => {
+                      if (error) {
+                        console.log(error);
+                        reject(error);
+                      } else {
+                        resolve(JSON.parse(JSON.stringify(results)));
           }
         });
       });
@@ -268,6 +304,87 @@ async function authenticatePass(username, hashedPass) {
     return false ;
   }
 }
+
+//admin page--------------------------------------------------------------------------------------------------------------------------------
+app.get("/dashboard-admin", async (req, res) => {
+  try {
+    const users = await getListOfUsers();
+    // console.log('users : ', users) ;
+    res.render("dashboard-admin", {
+       errorMsg: null, 
+       success: null,
+       users : users
+    });
+  } catch (error) {
+    console.error("Error fetching data from the database:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.post('/dashboard-admin', async (req, res) => {
+  const userID = req.body.userID;
+  const users = await getListOfUsers();
+
+  try {
+    const result = await deleteUser(userID) ; 
+    if(result === true) {
+      res.render("dashboard-admin", {
+        errorMsg: null, 
+        success: true,
+        users : users
+     });
+    }else{
+      res.render("dashboard-admin", {
+        errorMsg: null, 
+        success: false,
+        users : users
+     });
+    }
+  } catch (error) {
+    console.error("Error updating request status:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+const getListOfUsers = async (voterID) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+          SELECT 
+            user.userID,
+            user.name,
+            user.username
+          FROM
+            user
+          where
+            user.role != 'ADM'
+      `;
+    pool.query(query, (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+};
+
+const deleteUser = async (userID) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+          DELETE FROM 
+            user
+          WHERE
+            user.userID = ?
+      `;
+    pool.query(query, userID, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(true);
+      }
+    });
+  });
+};
 
 
 //sign up page--------------------------------------------------------------------------------------------------------------------------------
@@ -316,8 +433,8 @@ app.post("/signup", async (req, res) => {
 
                 const role = "VTR";
                 const hashedPass = crypto.createHash("sha256").update(password).digest("hex");
-                const insUserQuery = "INSERT INTO user (username, password, role) VALUES (?, ?, ?)";
-                const insUserValues = [username, hashedPass, role];
+                const insUserQuery = "INSERT INTO user (name, username, password, role) VALUES (?, ?, ?, ?)";
+                const insUserValues = [name, username, hashedPass, role];
                 pool.query(insUserQuery, insUserValues, (error, results) => {
                   if (error) {
                     console.log(error);
@@ -332,8 +449,8 @@ app.post("/signup", async (req, res) => {
                     console.log(error);
                   } else {
                     const userID = results[0].userID;
-                    const insVoterQuery = "INSERT INTO voter (voterID, name, email, publicKey, privateKey) VALUES (?, ?, ?, ?, ?)";
-                    const insVoterValue = [userID, name, email, publicKey, privateKey];
+                    const insVoterQuery = "INSERT INTO voter (voterID, email, publicKey, privateKey) VALUES (?, ?, ?, ?, ?)";
+                    const insVoterValue = [userID, email, publicKey, privateKey];
                     pool.query(insVoterQuery, insVoterValue, (error, results) => {
                       if (error) {
                         console.log(error);
@@ -570,8 +687,15 @@ const insVote = async (conn, voterID, electionID, candidate) => {
 };
 
 const getName = async (conn, voterID) => {
+  const query = `
+                SELECT 
+                    name 
+                FROM 
+                    user inner join voter
+                      on user.userID = voter.voterID
+                WHERE voterID = ?` ;
   return new Promise((resolve, reject) => {
-    conn.query("SELECT name FROM voter WHERE voterID = ?", voterID, (err, result) => {
+    conn.query(query, voterID, (err, result) => {
       if (err) {
         reject(err);
       } else {
