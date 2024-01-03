@@ -1,0 +1,75 @@
+body,
+h1,
+h2,
+h3,
+p,
+ul,
+li,
+figure,
+figcaption,
+div {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-family: 'Arial', sans-serif;
+}
+
+body {
+  background-color: #05293C;
+  font-family: 'Arial', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: white;
+}
+
+.container {
+  text-align: center;
+  border: 2px solid #657585;
+  border-radius: 10px;
+  padding: 20px;
+  background-color: #657585;
+}
+
+header {
+  margin-bottom: 30px;
+}
+
+h1 {
+  font-size: 2.5em;
+  font-weight: bold;
+  color: white;
+}
+
+.auth-options {
+  display: flex;
+  flex-direction: column; /* Mengubah menjadi kolom agar tombol berada di tengah */
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.login,
+.signup {
+    background-color: #444D56;
+    color: #0EA5E9;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    border-color: #0EA5E9;
+    border-style: solid;
+    font-weight: bolder;
+    border-width: 1px;
+    text-decoration: none; /* Menghilangkan garis bawah pada tulisan */
+    width: 150px; /* Menambah lebar agar tombol terlihat lebih baik */
+    margin: 0 auto; /* Memusatkan tombol */
+}
+
+.login:hover,
+.signup:hover {
+    background-color: #0EA5E9;
+    color: #fff;
+}

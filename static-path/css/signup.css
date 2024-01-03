@@ -1,0 +1,133 @@
+body,
+h1,
+h2,
+h3,
+p,
+ul,
+li,
+figure,
+figcaption,
+div {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-family: 'Arial', sans-serif;
+}
+
+body {
+  background-color: #05293C;
+  font-family: 'Arial', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: white;
+}
+
+#signup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10%;
+  margin-top: 20%;
+}
+
+.external-window-container {
+  background-color: #657585;
+  padding: 20px;
+  border-radius: 10px;
+  box-sizing: border-box;
+  width: 660px; /* Lebar kontainer formulir */
+}
+
+#signup-close-window-link {
+  color: #fff;
+  text-decoration: none;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.form-title {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.form-brand {
+  font-size: 2em;
+  margin-bottom: 10px;
+}
+
+.alert {
+  margin-top: 1%;
+  margin-bottom: 1%;
+  font-weight: bolder;
+}
+
+#message {
+  display: none; /* Menyembunyikan pesan */
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  box-sizing: border-box;
+  background-color: #d6dee2;
+  border: 1px solid #d6dee2;
+  color: black;
+  border-radius: 5px;
+  font-family: 'Arial', sans-serif;
+}
+
+input[type="text"]:invalid,
+input[type="password"]:invalid,
+input[type="email"]:invalid {
+  background-color: #d6dee2;
+  border: 1px solid #d6dee2;
+  color: black;
+  border-radius: 5px;
+}
+
+#signupSubmit {
+  background-color: #444D56;
+  color: #0EA5E9;
+  padding: 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  border-color: #0EA5E9;
+  border-style: solid;
+  font-weight: bolder;
+  border-width: 1px;
+}
+
+#signupSubmit:hover {
+  background-color: #0EA5E9;
+  color: #fff;
+}
+
+a {
+  color: #0EA5E9;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+p {
+  margin-top: 15px;
+}
