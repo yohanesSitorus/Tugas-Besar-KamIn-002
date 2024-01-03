@@ -29,8 +29,8 @@
           <div class="action-buttons">
             <!-- Form for accepting the request -->
             <form action="/process-request/accept" method="post" style="display: inline;">
-              <input  name="electionID" value="<%= requestedElection.electionID %>">
-              <input  name="voterID" value="<%= requestedElection.voterID %>">
+              <input  type="hidden" name="electionID" value="<%= requestedElection.electionID %>">
+              <input  type="hidden" name="voterID" value="<%= requestedElection.voterID %>">
               <button type="submit" class="approve-button">Accept</button>
             </form>
           
