@@ -142,7 +142,10 @@ app.post("/login", async (req, res) => {
   const hashedPass = crypto.createHash("sha256").update(password).digest("hex");
   // console.log(hashedPass) ;
   // console.log(await authenticatePass(username, hashedPass)) ;
-  if ((await authenticatePass(username, hashedPass)) === true) {
+
+  const isPasswordTrue = await authenticatePass(username, hashedPass) ;
+  // console.log(isPasswordTrue) ;
+  if (isPasswordTrue === true) {
     const query = `
                 select userID, role
                 from user
@@ -180,39 +183,76 @@ app.post("/login", async (req, res) => {
   }
 });
 
-//fungsi otentikasi kesamaan password
-async function authenticatePass(username, hashedPass) {
+//fungsi otentikasi kebenaran username
+async function authenticateUsername(username) {
   const query = `
-                select password
+                select username
                 from user
                 where username = ?`;
 
   const param = username;
 
-  try {
-    const data = await new Promise((resolve, reject) => {
-      pool.query(query, param, (error, results) => {
-        if (error) {
-          console.log(error);
-          reject(error);
-        } else {
-          resolve(JSON.parse(JSON.stringify(results)));
+  return new Promise((resolve, reject) => {
+    pool.query(query, param, (error, results) => {
+      if (error) {
+        console.log(error);
+        reject(error);
+      } else {
+        // console.log(results) ;
+        if(results.length>0) {
+          resolve(true);
+        }else{
+          resolve(false) ;
         }
-      });
+      }
     });
+  });
 
     // console.log(data) ;
-    if (data[0].password === hashedPass) {
-      // console.log('true');
-      return true;
-    } else {
-      // console.log('false');
-      return false;
+}
+
+//fungsi otentikasi kesamaan password
+async function authenticatePass(username, hashedPass) {
+
+  const isUsernameExist = await authenticateUsername(username) ;
+  // console.log(isUsernameExist) ;
+  
+  if(isUsernameExist === true) {
+    const query = `
+                select password
+                from user
+                where username = ?`;
+
+    const param = username;
+
+    try {
+      const data = await new Promise((resolve, reject) => {
+        pool.query(query, param, (error, results) => {
+          if (error) {
+            console.log(error);
+            reject(error);
+          } else {
+            resolve(JSON.parse(JSON.stringify(results)));
+          }
+        });
+      });
+
+      // console.log(data) ;
+      if (data[0].password === hashedPass) {
+        // console.log('true');
+        return true;
+      } else {
+        // console.log('false');
+        return false;
+      }
+    } catch (error) {
+      throw error;
     }
-  } catch (error) {
-    throw error;
+  }else{
+    return false ;
   }
 }
+
 
 //sign up page--------------------------------------------------------------------------------------------------------------------------------
 app.get("/signup", async (req, res) => {
