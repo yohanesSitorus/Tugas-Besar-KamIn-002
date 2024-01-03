@@ -13,32 +13,24 @@
 <body>
   <div id="wrapper">
     <section id="left-sidebar">
-      <h2>Selamat Datang, [Nama Pengguna].</h2>
+      <h2>Selamat Datang, <%- name[0].name %>.</h2>
       <%- include('nav-link/sidebar'); %>
     </section>
     <div class="container">
-      <!-- <div class="result-section">
-        <h2>Nama Voting</h2>
-        <p>Kandidat Pemenang: [Nama Kandidat]</p>
-        <p>Persentase Kemenangan: [Persentase]%</p>
-      </div>
       <div class="result-section">
-        <h2>Nama Voting</h2>
-        <p>Kandidat Pemenang: [Nama Kandidat]</p>
-        <p>Persentase Kemenangan: [Persentase]%</p>
-      </div>
-      <div class="result-section">
-        <h2>Nama Voting</h2>
-        <p>Kandidat Pemenang: [Nama Kandidat]</p>
-        <p>Persentase Kemenangan: [Persentase]%</p>
-      </div> -->
-      <% resultData.forEach(result => { %>
-        <div class="result-section">
-          <h2><%= result.title %></h2>
-          <p>Kandidat Pemenang: <%= result.winnerName %></p>
-          <p>Persentase Kemenangan: <%= result.winPercentage %>%</p>
+        <h2>Hasil Voting</h2>
+        <% dataResult.forEach(result => { %>
+          <div>
+            <h3><%= result.title %></h3>
+            <p>Kandidat: <%= result.name %></p>
+            <p>Frekuensi: <%= result.jumlah %></p>
+          </div>
+        <% }); %>
+        <div class="winner">
+          <h2>Kandidat Pemenang</h2>
+          <p><%= winningCandidate %></p>
         </div>
-      <% }); %>
+      </div>
     </div>
   </div>
 </body>

@@ -496,14 +496,19 @@ app.get("/dashboard-user", async (req, res) => {
   try {
     const voterID = req.session.userID;
 
-    // const name = await getName(conn, req.session.userID);
+      const name = await getName(conn, req.session.userID);
 
-    const elections = await getElections(voterID);
 
-    res.render("dashboard", {
-      elections: elections,
-      errorMsg: "",
-    });
+      const elections = await getElections(voterID);
+
+      
+      // res.render('dashboard', { elections});
+
+      res.render("dashboard", {
+        elections,
+        name: name,
+      });
+
   } catch (error) {
     console.error("Error fetching data from the database:", error);
     res.status(500).send("Internal Server Error");
@@ -543,9 +548,16 @@ app.get("/requested/:electionID", async (req, res) => {
   try {
     const { electionID } = req.params;
 
-    const requestedElection = await getRequestedElection(electionID);
+    const name = await getName(conn, req.session.userID);
 
-    res.render("requested", { requestedElection });
+    const requestedElection = await getRequestedElection(electionID);
+    
+    // res.render('requested', { name ,requestedElection });
+
+    res.render("requested", {
+      requestedElection,
+      name: name,
+    });
   } catch (error) {
     console.error("Error fetching data from the database:", error);
     res.status(500).send("Internal Server Error");
@@ -734,34 +746,41 @@ const getPublicKey = async (conn) => {
 //   res.render("result");
 // });
 
-app.get("/result", (req, res) => {
-  // const userId = req.session.userID; // Ambil ID pengguna dari sesi atau permintaan
-  const userId = 5;
-  const query = `
-    SELECT election.title, candidate.name AS winnerName, result.frequency, 
-    (result.frequency / (SELECT COUNT(*) FROM vote WHERE vote.electionID = result.electionID)) * 100 AS winPercentage
-    FROM result
-    INNER JOIN election ON result.electionID = election.electionID
-    INNER JOIN candidate ON result.candidateID = candidate.candidateID
-    INNER JOIN participation ON result.electionID = participation.electionID
-    WHERE participation.voterID = ${userId} AND participation.requestStatus = 1;
-  `;
 
-  pool.query(query, (error, results) => {
-    if (error) throw error;
-    const namaPengguna = "ContohNamaPengguna"; // Gantilah dengan cara Anda mendapatkan nama pengguna
+// app.get('/result', (req, res) => {
+//   // const userId = req.session.userID; // Ambil ID pengguna dari sesi atau permintaan
+//   const userId = 5;
+//   const query = `
+//     SELECT election.title, candidate.name AS winnerName, result.frequency, 
+//     (result.frequency / (SELECT COUNT(*) FROM vote WHERE vote.electionID = result.electionID)) * 100 AS winPercentage
+//     FROM result
+//     INNER JOIN election ON result.electionID = election.electionID
+//     INNER JOIN candidate ON result.candidateID = candidate.candidateID
+//     INNER JOIN participant ON result.electionID = participant.electionID
+//     WHERE participant.voterID = ${userId} AND participant.requestStatus = 1;
+//   `;
 
-    res.render("result", { namaPengguna, resultData: results });
-  });
-});
+//   pool.query(query, (error, results) => {
+//     if (error) throw error;
+//     const namaPengguna = "ContohNamaPengguna"; // Gantilah dengan cara Anda mendapatkan nama pengguna
+
+//     res.render('result', { namaPengguna, resultData: results });
+//   });
+// })
 
 //KODE YG BAKAL DIPAKE NNTI UNTK app.get('/result')
-//result.frequency,
-//(result.frequency / (SELECT COUNT(*) FROM vote WHERE vote.electionID = result.electionID)) * 100 AS winPercentage
+// result.frequency, 
+// (result.frequency / (SELECT COUNT(*) FROM vote WHERE vote.electionID = result.electionID)) * 100 AS winPercentage
 
-//app.get('/result', (req, res) => {
-// const userId = req.session.userID; // Ambil ID pengguna dari sesi atau permintaan
-//   const userId = 5;
+// app.get('/result', async (req, res) => {
+//   const userId = req.session.userID; 
+
+//   //const name = await getName(conn, req.session.userID);
+
+//   //const frequency = await getCandidateFrequency(candidateID);
+
+
+//   // const userId = 5;
 //   const query = `
 //     SELECT
 //       election.title,
@@ -775,13 +794,153 @@ app.get("/result", (req, res) => {
 //   `;
 
 //   pool.query(query, (error, results) => {
-//     if (error) throw error;
-//     const namaPengguna = "ContohNamaPengguna"; // Gantilah dengan cara Anda mendapatkan nama pengguna
-
-//     res.render('result', { namaPengguna, resultData: results });
+//     if (error){ 
+//       console.err('Error fetching data from the database:', error);
+//     // const namaPengguna = "ContohNamaPengguna"; 
+//     } else {
+//     res.render("result", 
+//     { 
+//       // name:name,
+//       results: results, 
+//       // frequency: frequency,
+//     });
+//   }
 //   });
 // });
 
+
+app.get('/result', async (req, res) => {
+  try{
+  const voterID = req.session.userID; 
+
+  const conn = await dbConnect();
+
+  const name = await getName2(conn, req.session.userID);
+
+  const dataResult = await getResultCoba(req.session.userID);
+
+  const winningCandidate = findWinningCandidate(dataResult);
+
+  
+
+  console.log('Name:', name);
+    console.log('Data Result:', dataResult);
+    console.log('voter :', voterID);
+    console.log('Winning Candidate:', winningCandidate);
+
+  // const frequency = await getCandidateFrequency(candidateID);
+
+  // const userId = 5;
+  // const query = `
+  //   SELECT 
+  //     election.title, 
+  //     candidate.name AS winnerName, 
+  //     candidate.candidateID 
+  //   FROM result
+  //   INNER JOIN election ON result.electionID = election.electionID
+  //   INNER JOIN candidate ON result.candidateID = candidate.candidateID
+  //   INNER JOIN participation ON result.electionID = participation.electionID
+  //   WHERE participation.voterID = ${userId} AND participation.requestStatus = 1;
+  // `;
+
+  res.render("result", {
+    dataResult,
+    winningCandidate,
+    name: name,
+   
+    // frequency,
+  });
+} catch (error) {
+  console.error('Error fetching data from the database:', error);
+  res.status(500).send('Internal Server Error');
+  console.log('Name:', name);
+    console.log('Data Result:', dataResult);
+}
+});
+
+const getResult = async (voterID) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+    SELECT 
+    election.title, 
+    candidate.name AS winnerName, 
+    candidate.candidateID 
+  FROM result
+  INNER JOIN election ON result.electionID = election.electionID
+  INNER JOIN candidate ON result.candidateID = candidate.candidateID
+  INNER JOIN participation ON result.electionID = participation.electionID
+  WHERE participation.voterID = ? AND participation.requestStatus = 1;
+`;
+    pool.query(query, [voterID], (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+};
+
+const getResultCoba = async (voterID) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+    SELECT 
+    election.title, 
+    candidate.name AS name, 
+    candidate.candidateID,
+    electionresult.jumlah 
+  FROM 
+  (SELECT electionID, candidateID, COUNT(resultID) AS jumlah FROM result GROUP BY electionID, candidateID) AS electionresult 
+  INNER JOIN candidate ON candidate.candidateID = electionresult.candidateID
+  INNER JOIN election ON election.electionID = candidate.electionID
+  INNER JOIN participation ON participation.electionID = electionresult.electionID
+  WHERE participation.voterID = ? AND participation.requestStatus = 1;
+`;
+    pool.query(query, [voterID], (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+};
+
+const getCandidateFrequency = async (candidateID) => {
+
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT COUNT(resultID) as frekuensi
+      FROM result
+      WHERE electionID = ? and candidateID = ?
+    `;
+    const params = [electionID, candidateID] ;
+    pool.query(query, params, (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        const frequency = results;
+        resolve(frequency);
+      }
+    });
+  });
+  // console.log(frequency) ;
+};
+
+const getName2 = async (conn, voterID) => {
+  return new Promise((resolve, reject) => {
+    conn.query("SELECT name FROM voter WHERE voterID = ?", [voterID], (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
+
+
+
 // const getCandidateFrequency = async (candidateID) => {
 
 //   return new Promise((resolve, reject) => {
@@ -802,23 +961,17 @@ app.get("/result", (req, res) => {
 //   });
 //   // console.log(frequency) ;
 // };
-// const getCandidateFrequency = async (candidateID) => {
 
-//   return new Promise((resolve, reject) => {
-//     const query = `
-//       SELECT COUNT(resultID)
-//       FROM result
-//       WHERE electionID = ? and candidateID = ?
-//     `;
-//     const params = [electionID, candidateID] ;
-//     pool.query(query, params, (err, results) => {
-//       if (err) {
-//         reject(err);
-//       } else {
-//         const frequency = results;
-//         resolve(frequency);
-//       }
-//     });
-//   });
-//   // console.log(frequency) ;
-// };
+const findWinningCandidate = (results) => {
+  let maxFrequency = 0;
+  let winningCandidate = null;
+
+  results.forEach((result) => {
+    if (result.jumlah > maxFrequency) {
+      maxFrequency = result.jumlah;
+      winningCandidate = result.name;
+    }
+  });
+
+  return winningCandidate;
+};

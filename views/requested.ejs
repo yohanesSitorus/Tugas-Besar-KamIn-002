@@ -13,7 +13,7 @@
 <body>
   <div id="wrapper">
     <section id="left-sidebar">
-      <h2>Selamat Datang, <%//= namaPengguna //%>.</h2>
+      <h2>Selamat Datang, <%- name[0].name %>.</h2>
       
       <%- include('nav-link/sidebar'); %>
     </section>
@@ -30,14 +30,14 @@
             <!-- Form for accepting the request -->
             <form action="/process-request/accept" method="post" style="display: inline;">
               <input  type="hidden" name="electionID" value="<%= requestedElection.electionID %>">
-              <input  type="hidden" name="voterID" value="<%= requestedElection.voterID %>">
+              <!-- <input  type="hidden" name="voterID" value="<%= //requestedElection.voterID %>"> -->
               <button type="submit" class="approve-button">Accept</button>
             </form>
           
             <!-- Form for rejecting the request -->
             <form action="/process-request/reject" method="post" style="display: inline;">
               <input type="hidden" name="electionID" value="<%= requestedElection.electionID %>">
-              <input type="hidden" name="voterID" value="<%= requestedElection.voterID %>">
+              
               <button type="submit" class="reject-button">Reject</button>
             </form>
           </div>
