@@ -1,0 +1,29 @@
+<head>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,1,0" />
+    <link rel="stylesheet" href="/css/reset.css">
+    <link rel="stylesheet" href="/css/default-styling.css">
+    <link rel="stylesheet" href="/css/form-styling.css">
+</head>
+<style>
+    #alert-container {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
+    }
+</style>
+
+<body>
+    <div id="alert-container">
+        <h1>
+            Error :
+            <%= errorMsg %>
+        </h1>
+        <!-- fix this page to give previous page link -->
+        <p>Kembali ke halaman <a href="<%= previousPage %>">login.</a></p>
+    </div>
+</body>

@@ -74,14 +74,14 @@ const isAdmin = (req, res, next) => {
   if (req.cookies.role === 'ADM') {
       next();
   } else {
-      res.render('404', { errorMsg: 'Access Forbidden', previousPage: '/' });
+      res.render('404', { errorMsg: 'Access Forbidden', previousPage: '/login' });
   }
 };
 const isVoter = (req, res, next) => {
   if (req.cookies.role === 'VTR') {
       next();
   } else {
-      res.render('404', { errorMsg: 'Access Forbidden', previousPage: '/' });
+      res.render('404', { errorMsg: 'Access Forbidden', previousPage: '/login' });
   }
 };
 
