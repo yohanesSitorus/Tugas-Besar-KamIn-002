@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/css/Add_New_Election.css">
+  <link rel="stylesheet" href="/css/default-styling.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
   <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script> <!-- jQuery CDN -->
   <!-- <script src="/index.js"></script> -->
 
@@ -12,7 +14,7 @@
 <body>
   <div id="wrapper">
     <section id="left-sidebar">
-      <h2>Selamat Datang, [Nama Pengguna].</h2>
+      
       
       <%- include('nav-link/sidebar'); %>
     </section>
@@ -30,9 +32,17 @@
         <label for="end-date">End Date:</label>
         <input type="datetime-local" id="enddate" name="enddate" required>
     
-        <label for="invite-input">Undang Pengguna:</label>
-        <input type="text" id="inviteinput" name="inviteinput" placeholder="Masukkan email" required>
-       
+        <!-- ... (Bagian HTML lainnya) ... -->
+
+<label for="invite-input">Undang Pengguna:</label>
+<textarea id="inviteinput" name="inviteinput" placeholder="Masukkan email, pisahkan dengan baris baru" required></textarea>
+
+<label for="candidates">Pilihan/Kandidat:</label>
+<textarea id="candidates" name="candidates" placeholder="Masukkan nama kandidat, pisahkan dengan baris baru" required></textarea>
+
+<!-- ... (Bagian HTML lainnya) ... -->
+
+
         <p class="alert" id="notif"><%= errorMsg %></p>
         
         <button onclick="Add_New_Election()">Send Request</button>

@@ -2,7 +2,7 @@ body, h1, h2, h3, p, ul, li, figure, figcaption, div {
   margin: 0;
   padding: 0;
   border: 0;
-  font-family: 'Arial', sans-serif;
+  /* font-family: 'Arial', sans-serif; */
 }
 
 h2{
@@ -11,7 +11,7 @@ h2{
 
 body {
   background-color: #05293C;
-  font-family: 'Arial', sans-serif;
+  /* font-family: 'Arial', sans-serif; */
   margin: 0;
   padding: 0;
   display: flex;
@@ -25,45 +25,45 @@ body {
   flex: 1;
 }
 
-#left-sidebar {
+/* #left-sidebar {
   background-color: #05293C;
   color: #fff;
   padding: 20px;
   width: 250px;
   min-width: 250px;
   box-sizing: border-box;
-}
+} */
 
-.links-container {
+/* .links-container {
   display: flex;
   flex-direction: column;
-}
+} */
 
-.container {
+/* .container {
   display: flex;
   flex-direction: column;
   padding: 20px;
   flex-grow: 1;
-}
+} */
 
-.menu-routing {
+/* .menu-routing {
   text-decoration: none;
   color: #fff;
   padding: 10px;
   margin: 5px 0;
   border-radius: 5px;
   transition: background-color 0.3s;
-}
+} */
 
-.menu-routing:hover {
+/* .menu-routing:hover {
   background-color: #555;
-}
+} */
 
-label {
+/* label {
   display: block;
   margin-bottom: 5px;
   font-weight: bold;
-}
+} */
 
 input[type="text"],
 textarea,
@@ -74,7 +74,7 @@ input[type="datetime-local"] {
   box-sizing: border-box;
 }
 
-button {
+/* button {
   background-color: #444D56;
   color: #0EA5E9;
   padding: 10px;
@@ -86,14 +86,14 @@ button {
   border-style:solid;
   font-weight:bolder;
   border-width: 1px;
-}
-
+} */
+/* 
 button:hover {
   background-color: #0EA5E9;
   color: #fff;
-}
+} */
 
-.menu-routing {
+/* .menu-routing {
   display: block;
   font-weight:bolder;
   width: 90%;
@@ -111,16 +111,16 @@ button:hover {
   border-color: #0EA5E9;
   border-style:solid;
   border-width: 1px;
-}
+} */
 
-.menu-routing:hover {
+/* .menu-routing:hover {
   background-color: #0EA5E9;
   color: #fff;
 }
 
 .menu-routing:active {
   transform: translateY(2px);
-}
+} */
 
 #atur-jadwal {
   margin-top: 0;
@@ -130,7 +130,7 @@ label {
   display: block;
   margin-bottom: 5px;
   font-weight: bold;
-  font-family: 'Arial', sans-serif;
+  /* font-family: 'Arial', sans-serif; */
   
 }
 
@@ -145,12 +145,12 @@ input[type="datetime-local"] {
   border: 1px solid #657585;
   color: #fff;
   border-radius: 5px;
-  font-family: 'Arial', sans-serif;
+  /* font-family: 'Arial', sans-serif; */
 }
 
 ::placeholder {
   color: #9d9d9d; /* Warna placeholder */
-  font-family: 'Arial', sans-serif; /* Font placeholder */
+  
 }
 
 input[type="text"],
@@ -158,17 +158,17 @@ textarea,
 input[type="datetime-local"] {
   color: #9d9d9d;
   color: #fff;
-  font-family: 'Arial', sans-serif;
+  /* font-family: 'Arial', sans-serif; */
 }
 
-#election-description{
+/* #election-description{
   font-family: 'Arial', sans-serif;
   color: #fff;
-}
+} */
 
 #notif{
   margin-top: 1%;
   margin-bottom: 1%; 
-  font-family: 'Arial', sans-serif;
+  /* font-family: 'Arial', sans-serif; */
   font-weight: bolder;
 }

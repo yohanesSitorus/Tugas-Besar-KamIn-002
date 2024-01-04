@@ -109,13 +109,14 @@ app.post("/Add_New_Election", async (req, res) => {
   const electionDescription = req.body.electiondescription;
   const startDate = req.body.startdate;
   const endDate = req.body.enddate;
-  const email = req.body.inviteinput;
+  const emailArray = req.body.inviteinput.split('\n').map(e => e.trim()).filter(e => e !== '');
+  const candidatesArray = req.body.candidates.split('\n').map(c => c.trim()).filter(c => c !== '');
 
   // Pengecekan apakah email sudah terdaftar
-  const emailQuery = "SELECT `email` FROM voter WHERE `email` = ?";
-  const emailQ = [email];
+  const emailQuery = "SELECT `email`, voterID FROM voter WHERE email IN (?)";
+  const emailQ = [emailArray];
 
-  pool.query(emailQuery, emailQ, (error, emailResult) => {
+  pool.query(emailQuery, [emailQ], (error, emailResult) => {
     if (error) {
       console.log(error);
       return res.render("Add_New_Election", {
@@ -133,13 +134,46 @@ app.post("/Add_New_Election", async (req, res) => {
           console.log(insertError);
           return res.render("Add_New_Election", {
             errorMsg: "Gagal menyimpan data pemilihan. Mohon coba lagi nanti.",
-            successMsg: null, // Tambahkan successMsg agar pesan keberhasilan tidak ditampilkan saat terjadi kesalahan
+            successMsg: null,
           });
         }
 
-        console.log("Data pemilihan berhasil disimpan:", insertResult);
-        res.render("Add_New_Election", {
-          errorMsg: "Pemilihan berhasil ditambahkan.",
+        const electionID = insertResult.insertId;
+
+        // Insert voters into the participation table with requestStatus set to 0
+        const insertParticipationQuery = "INSERT INTO participation (electionID, voterID, requestStatus) VALUES ?";
+        const participationValues = emailResult.map(emailData => [electionID, emailData.voterID, 0]);
+
+        pool.query(insertParticipationQuery, [participationValues], (participationError, participationResult) => {
+          if (participationError) {
+            console.log(participationError);
+            return res.render("Add_New_Election", {
+              errorMsg: "Gagal menyimpan data partisipasi. Mohon coba lagi nanti.",
+              successMsg: null,
+            });
+          }
+
+          const insertCandidatesQuery = "INSERT INTO candidate (electionID, name) VALUES ?";
+          const candidatesValues = candidatesArray.map(candidate => [electionID, candidate]);
+
+          pool.query(insertCandidatesQuery, [candidatesValues], (candidatesError, candidatesResult) => {
+            if (candidatesError) {
+              console.log(candidatesError);
+              return res.render("Add_New_Election", {
+                errorMsg: "Gagal menyimpan data kandidat. Mohon coba lagi nanti.",
+                successMsg: null,
+              });
+            }
+
+            console.log("Data partisipasi berhasil disimpan:", participationResult);
+            console.log("Data pemilihan berhasil disimpan:", insertResult);
+
+            // Tambahkan pesan keberhasilan setelah semua query berhasil dijalankan
+            res.render("Add_New_Election", {
+              errorMsg: null,
+              successMsg: "Pemilihan berhasil ditambahkan.",
+            });
+          });
         });
       });
     } else {
@@ -815,53 +849,98 @@ const getPublicKey = async (conn) => {
 // });
 
 
-app.get('/result', async (req, res) => {
-  try{
-  const voterID = req.session.userID; 
+// app.get('/result', async (req, res) => {
+//   try{
+//   const voterID = req.session.userID; 
 
-  const conn = await dbConnect();
+//   const conn = await dbConnect();
 
-  const name = await getName2(conn, req.session.userID);
+//   const name = await getName2(conn, req.session.userID);
 
-  const dataResult = await getResultCoba(req.session.userID);
+//   const dataResult = await getResultCoba(req.session.userID);
 
-  const winningCandidate = findWinningCandidate(dataResult);
+//   const winningCandidate = findWinningCandidate(dataResult);
 
   
 
-  console.log('Name:', name);
-    console.log('Data Result:', dataResult);
-    console.log('voter :', voterID);
-    console.log('Winning Candidate:', winningCandidate);
+//   console.log('Name:', name);
+//     console.log('Data Result:', dataResult);
+//     console.log('voter :', voterID);
+//     console.log('Winning Candidate:', winningCandidate);
 
-  // const frequency = await getCandidateFrequency(candidateID);
+//   // const frequency = await getCandidateFrequency(candidateID);
 
-  // const userId = 5;
-  // const query = `
-  //   SELECT 
-  //     election.title, 
-  //     candidate.name AS winnerName, 
-  //     candidate.candidateID 
-  //   FROM result
-  //   INNER JOIN election ON result.electionID = election.electionID
-  //   INNER JOIN candidate ON result.candidateID = candidate.candidateID
-  //   INNER JOIN participation ON result.electionID = participation.electionID
-  //   WHERE participation.voterID = ${userId} AND participation.requestStatus = 1;
-  // `;
+//   // const userId = 5;
+//   // const query = `
+//   //   SELECT 
+//   //     election.title, 
+//   //     candidate.name AS winnerName, 
+//   //     candidate.candidateID 
+//   //   FROM result
+//   //   INNER JOIN election ON result.electionID = election.electionID
+//   //   INNER JOIN candidate ON result.candidateID = candidate.candidateID
+//   //   INNER JOIN participation ON result.electionID = participation.electionID
+//   //   WHERE participation.voterID = ${userId} AND participation.requestStatus = 1;
+//   // `;
 
-  res.render("result", {
-    dataResult,
-    winningCandidate,
-    name: name,
+//   res.render("result", {
+//     dataResult,
+//     winningCandidate,
+//     name: name,
    
-    // frequency,
-  });
-} catch (error) {
-  console.error('Error fetching data from the database:', error);
-  res.status(500).send('Internal Server Error');
-  console.log('Name:', name);
-    console.log('Data Result:', dataResult);
-}
+//     // frequency,
+//   });
+// } catch (error) {
+//   console.error('Error fetching data from the database:', error);
+//   res.status(500).send('Internal Server Error');
+//   console.log('Name:', name);
+//     console.log('Data Result:', dataResult);
+// }
+// });
+
+app.get("/result", async (req, res) => {
+  try {
+    const voterID = req.session.userID;
+
+    const conn = await dbConnect();
+
+    const name = await getName2(conn, req.session.userID);
+
+    const dataResult = await getResultWinner(voterID);
+    const dataAll = await getResultAll(voterID);
+
+    console.log("Name:", name);
+    console.log("Data Result:", dataResult);
+    console.log("Data All:", dataAll);
+    console.log("voter :", voterID);
+
+    // const frequency = await getCandidateFrequency(candidateID);
+
+    // const userId = 5;
+    // const query = `
+    //   SELECT
+    //     election.title,
+    //     candidate.name AS winnerName,
+    //     candidate.candidateID
+    //   FROM result
+    //   INNER JOIN election ON result.electionID = election.electionID
+    //   INNER JOIN candidate ON result.candidateID = candidate.candidateID
+    //   INNER JOIN participation ON result.electionID = participation.electionID
+    //   WHERE participation.voterID = ${userId} AND participation.requestStatus = 1;
+    // `;
+
+    res.render("result", {
+      name: name,
+      dataResult: dataResult,
+      dataAll: dataAll,
+      // frequency,
+    });
+  } catch (error) {
+    console.error("Error fetching data from the database:", error);
+    res.status(500).send("Internal Server Error");
+    // console.log("Name:", name);
+    // console.log("Data Result:", dataResult);
+  }
 });
 
 const getResult = async (voterID) => {
@@ -876,6 +955,55 @@ const getResult = async (voterID) => {
   INNER JOIN candidate ON result.candidateID = candidate.candidateID
   INNER JOIN participation ON result.electionID = participation.electionID
   WHERE participation.voterID = ? AND participation.requestStatus = 1;
+`;
+    pool.query(query, [voterID], (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+};
+
+const getResultWinner = async (voterID) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+    SELECT 
+    election.electionID,
+    election.title,
+    candidate.name, 
+    MAX(electionresult.jumlah) AS terbanyak
+    FROM election 
+    INNER JOIN candidate ON election.electionID=candidate.electionID 
+    INNER JOIN participation ON election.electionID = participation.electionID 
+    LEFT JOIN (SELECT candidate.candidateID, COUNT(resultID) AS jumlah FROM candidate LEFT JOIN result ON candidate.candidateID = result.candidateID GROUP BY candidate.candidateID) AS electionresult ON candidate.candidateID = electionresult.candidateID
+    WHERE participation.voterID = ? AND participation.requestStatus = 1
+    GROUP BY election.electionID;
+`;
+    pool.query(query, [voterID], (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+};
+
+const getResultAll = async (voterID) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+    SELECT 
+    election.electionID,
+    election.title, 
+    candidate.name, 
+    electionresult.jumlah
+    FROM election 
+    INNER JOIN candidate ON election.electionID=candidate.electionID 
+    INNER JOIN participation ON election.electionID = participation.electionID 
+    LEFT JOIN (SELECT candidate.candidateID, COUNT(resultID) AS jumlah FROM candidate LEFT JOIN result ON candidate.candidateID = result.candidateID GROUP BY candidate.candidateID) AS electionresult ON candidate.candidateID = electionresult.candidateID
+    WHERE participation.voterID = ? AND participation.requestStatus = 1;
 `;
     pool.query(query, [voterID], (err, results) => {
       if (err) {
@@ -975,16 +1103,16 @@ const getName2 = async (conn, voterID) => {
 //   // console.log(frequency) ;
 // };
 
-const findWinningCandidate = (results) => {
-  let maxFrequency = 0;
-  let winningCandidate = null;
+// const findWinningCandidate = (results) => {
+//   let maxFrequency = 0;
+//   let winningCandidate = null;
 
-  results.forEach((result) => {
-    if (result.jumlah > maxFrequency) {
-      maxFrequency = result.jumlah;
-      winningCandidate = result.name;
-    }
-  });
+//   results.forEach((result) => {
+//     if (result.jumlah > maxFrequency) {
+//       maxFrequency = result.jumlah;
+//       winningCandidate = result.name;
+//     }
+//   });
 
-  return winningCandidate;
-};
+//   return winningCandidate;
+// };
