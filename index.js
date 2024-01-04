@@ -91,14 +91,15 @@ app.use(['/Add_New_Election', 'dashboard-user', '/requested/:electionID', '/proc
 
 // untuk reuse 
 app.use((req, res, next) => {
-  const namaLengkap = req.cookies.nama;
-  res.locals.namaLengkap = namaLengkap;
+  const nama = req.cookies.name;
+  res.locals.nama = nama;
   next();
 });
 app.get('/404', async (req, res) => {
   res.render('404', { errorMsg: null, success: null });
 })
 
+//add new election page--------------------------------------------------------------------------------------------------------------------------------
 app.get("/Add_New_Election", async (req, res) => {
   res.render("Add_New_Election", { errorMsg: null, success: null });
 });
@@ -208,6 +209,7 @@ app.post("/login", async (req, res) => {
       } else if (results.length > 0) {
         // console.log(results);
         const user = results[0];
+        console.log(results[0]);
         req.session.userID = user.userID;
         res.cookie('name', user.name);
         res.cookie('userID', user.userID);
@@ -449,14 +451,14 @@ app.post("/signup", async (req, res) => {
                     console.log(error);
                   } else {
                     const userID = results[0].userID;
-                    const insVoterQuery = "INSERT INTO voter (voterID, email, publicKey, privateKey) VALUES (?, ?, ?, ?, ?)";
+                    const insVoterQuery = "INSERT INTO voter (voterID, email, publicKey, privateKey) VALUES (?, ?, ?, ?)";
                     const insVoterValue = [userID, email, publicKey, privateKey];
-                    pool.query(insVoterQuery, insVoterValue, (error, results) => {
+                    pool.query(insVoterQuery, insVoterValue, (error) => {
                       if (error) {
                         console.log(error);
                       } else {
                         req.session.userID = userID;
-
+                        console.log('voter success successfully') ;
                         res.redirect("/dashboard-user");
                       }
                     });
@@ -507,6 +509,7 @@ app.get("/dashboard-user", async (req, res) => {
       res.render("dashboard", {
         elections,
         name: name,
+        errorMsg:''
       });
 
   } catch (error) {
@@ -928,8 +931,15 @@ const getCandidateFrequency = async (candidateID) => {
 };
 
 const getName2 = async (conn, voterID) => {
+  const query = `
+    SELECT 
+        name 
+    FROM 
+        user inner join voter
+          on user.userID = voter.voterID
+    WHERE voterID = ?` ;
   return new Promise((resolve, reject) => {
-    conn.query("SELECT name FROM voter WHERE voterID = ?", [voterID], (err, result) => {
+    conn.query(query, [voterID], (err, result) => {
       if (err) {
         reject(err);
       } else {
