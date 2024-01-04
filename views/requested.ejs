@@ -13,7 +13,8 @@
 <body>
   <div id="wrapper">
     <section id="left-sidebar">
-      <h2>Selamat Datang, <%//= namaPengguna //%>.</h2>
+      <h2>Selamat Datang, <%- name[0].name %>.</h2>
+      
       <%- include('nav-link/sidebar'); %>
     </section>
     <div class="container">
@@ -36,7 +37,7 @@
             <!-- Form for rejecting the request -->
             <form action="/process-request/reject" method="post" style="display: inline;">
               <input type="hidden" name="electionID" value="<%= requestedElection.electionID %>">
-              <input type="hidden" name="voterID" value="<%= requestedElection.voterID %>">
+              
               <button type="submit" class="reject-button">Reject</button>
             </form>
           </div>

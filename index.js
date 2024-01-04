@@ -67,8 +67,39 @@ app.use(
       maxAge: 16000,
     },
   })
-);
+  );
+  
+//Access Control--------------------------------------------------------------------------------------------------------------------------------
+const isAdmin = (req, res, next) => {
+  if (req.cookies.role === 'ADM') {
+      next();
+  } else {
+      res.render('404', { errorMsg: 'Access Forbidden', previousPage: '/login' });
+  }
+};
+const isVoter = (req, res, next) => {
+  if (req.cookies.role === 'VTR') {
+      next();
+  } else {
+      res.render('404', { errorMsg: 'Access Forbidden', previousPage: '/login' });
+  }
+};
 
+app.use(['/dashboard-admin'], isAdmin);
+app.use(['/Add_New_Election', 'dashboard-user', '/requested/:electionID', '/process-request/accept', 
+          '/process-request/reject', '/approved/:electionID', '/result'], isVoter);
+
+// untuk reuse 
+app.use((req, res, next) => {
+  const nama = req.cookies.name;
+  res.locals.nama = nama;
+  next();
+});
+app.get('/404', async (req, res) => {
+  res.render('404', { errorMsg: null, success: null });
+})
+
+//add new election page--------------------------------------------------------------------------------------------------------------------------------
 app.get("/Add_New_Election", async (req, res) => {
   res.render("Add_New_Election", { errorMsg: null, success: null });
 });
@@ -128,10 +159,10 @@ function sendInvitationEmail(email) {
 
 //homepage--------------------------------------------------------------------------------------------------------------------------------
 app.get("/", async (req, res) => {
-  // const keyPairS = forge.pki.rsa.generateKeyPair({ bits: 2048 });
-  // const keyPub = forge.pki.publicKeyToPem(keyPairS.publicKey);
-  // const keyPriv = forge.pki.privateKeyToPem(keyPairS.privateKey);
-  // const insertK = await insertKey(conn, keyPub, keyPriv);
+  const keyPairS = forge.pki.rsa.generateKeyPair({ bits: 2048 });
+  const keyPub = forge.pki.publicKeyToPem(keyPairS.publicKey);
+  const keyPriv = forge.pki.privateKeyToPem(keyPairS.privateKey);
+  const insertK = await insertKey(conn, keyPub, keyPriv);
   res.render("home");
 });
 
@@ -158,26 +189,33 @@ app.post("/login", async (req, res) => {
   const hashedPass = crypto.createHash("sha256").update(password).digest("hex");
   // console.log(hashedPass) ;
   // console.log(await authenticatePass(username, hashedPass)) ;
-
+  
   const isPasswordTrue = await authenticatePass(username, hashedPass) ;
   // console.log(isPasswordTrue) ;
   if (isPasswordTrue === true) {
     const query = `
-                select userID, role
-                from user
-                where username = ? and password = ?`;
-
+    select 
+    name, userID, role
+    from 
+    user
+    where 
+    username = ? and password = ?`;
+    
     const params = [username, hashedPass];
-
+    
     pool.query(query, params, (error, results) => {
       if (error) {
         console.log(error);
       } else if (results.length > 0) {
         // console.log(results);
         const user = results[0];
+        console.log(results[0]);
         req.session.userID = user.userID;
-
+        res.cookie('name', user.name);
+        res.cookie('userID', user.userID);
+        res.cookie('role', user.role);
         if (user.role === "ADM") {
+          res.cookies 
           res.redirect("/dashboard-admin");
         } else if (user.role === "VTR") {
           res.redirect("/dashboard-user");
@@ -202,12 +240,12 @@ app.post("/login", async (req, res) => {
 //fungsi otentikasi kebenaran username
 async function authenticateUsername(username) {
   const query = `
-                select username
-                from user
-                where username = ?`;
+  select username
+  from user
+  where username = ?`;
 
   const param = username;
-
+  
   return new Promise((resolve, reject) => {
     pool.query(query, param, (error, results) => {
       if (error) {
@@ -223,13 +261,13 @@ async function authenticateUsername(username) {
       }
     });
   });
-
-    // console.log(data) ;
+  
+  // console.log(data) ;
 }
 
 //fungsi otentikasi kesamaan password
 async function authenticatePass(username, hashedPass) {
-
+  
   const isUsernameExist = await authenticateUsername(username) ;
   // console.log(isUsernameExist) ;
   
@@ -239,16 +277,16 @@ async function authenticatePass(username, hashedPass) {
                 from user
                 where username = ?`;
 
-    const param = username;
-
-    try {
-      const data = await new Promise((resolve, reject) => {
-        pool.query(query, param, (error, results) => {
-          if (error) {
-            console.log(error);
-            reject(error);
-          } else {
-            resolve(JSON.parse(JSON.stringify(results)));
+                const param = username;
+                
+                try {
+                  const data = await new Promise((resolve, reject) => {
+                    pool.query(query, param, (error, results) => {
+                      if (error) {
+                        console.log(error);
+                        reject(error);
+                      } else {
+                        resolve(JSON.parse(JSON.stringify(results)));
           }
         });
       });
@@ -268,6 +306,87 @@ async function authenticatePass(username, hashedPass) {
     return false ;
   }
 }
+
+//admin page--------------------------------------------------------------------------------------------------------------------------------
+app.get("/dashboard-admin", async (req, res) => {
+  try {
+    const users = await getListOfUsers();
+    // console.log('users : ', users) ;
+    res.render("dashboard-admin", {
+       errorMsg: null, 
+       success: null,
+       users : users
+    });
+  } catch (error) {
+    console.error("Error fetching data from the database:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.post('/dashboard-admin', async (req, res) => {
+  const userID = req.body.userID;
+  const users = await getListOfUsers();
+
+  try {
+    const result = await deleteUser(userID) ; 
+    if(result === true) {
+      res.render("dashboard-admin", {
+        errorMsg: null, 
+        success: true,
+        users : users
+     });
+    }else{
+      res.render("dashboard-admin", {
+        errorMsg: null, 
+        success: false,
+        users : users
+     });
+    }
+  } catch (error) {
+    console.error("Error updating request status:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+const getListOfUsers = async (voterID) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+          SELECT 
+            user.userID,
+            user.name,
+            user.username
+          FROM
+            user
+          where
+            user.role != 'ADM'
+      `;
+    pool.query(query, (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+};
+
+const deleteUser = async (userID) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+          DELETE FROM 
+            user
+          WHERE
+            user.userID = ?
+      `;
+    pool.query(query, userID, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(true);
+      }
+    });
+  });
+};
 
 
 //sign up page--------------------------------------------------------------------------------------------------------------------------------
@@ -316,8 +435,8 @@ app.post("/signup", async (req, res) => {
 
                 const role = "VTR";
                 const hashedPass = crypto.createHash("sha256").update(password).digest("hex");
-                const insUserQuery = "INSERT INTO user (username, password, role) VALUES (?, ?, ?)";
-                const insUserValues = [username, hashedPass, role];
+                const insUserQuery = "INSERT INTO user (name, username, password, role) VALUES (?, ?, ?, ?)";
+                const insUserValues = [name, username, hashedPass, role];
                 pool.query(insUserQuery, insUserValues, (error, results) => {
                   if (error) {
                     console.log(error);
@@ -332,14 +451,14 @@ app.post("/signup", async (req, res) => {
                     console.log(error);
                   } else {
                     const userID = results[0].userID;
-                    const insVoterQuery = "INSERT INTO voter (voterID, name, email, publicKey, privateKey) VALUES (?, ?, ?, ?, ?)";
-                    const insVoterValue = [userID, name, email, publicKey, privateKey];
-                    pool.query(insVoterQuery, insVoterValue, (error, results) => {
+                    const insVoterQuery = "INSERT INTO voter (voterID, email, publicKey, privateKey) VALUES (?, ?, ?, ?)";
+                    const insVoterValue = [userID, email, publicKey, privateKey];
+                    pool.query(insVoterQuery, insVoterValue, (error) => {
                       if (error) {
                         console.log(error);
                       } else {
                         req.session.userID = userID;
-
+                        console.log('voter success successfully') ;
                         res.redirect("/dashboard-user");
                       }
                     });
@@ -379,14 +498,20 @@ app.get("/dashboard-user", async (req, res) => {
   try {
     const voterID = req.session.userID;
 
-    // const name = await getName(conn, req.session.userID);
+      const name = await getName(conn, req.session.userID);
 
-    const elections = await getElections(voterID);
 
-    res.render("dashboard", {
-      elections: elections,
-      errorMsg: "",
-    });
+      const elections = await getElections(voterID);
+
+      
+      // res.render('dashboard', { elections});
+
+      res.render("dashboard", {
+        elections,
+        name: name,
+        errorMsg:''
+      });
+
   } catch (error) {
     console.error("Error fetching data from the database:", error);
     res.status(500).send("Internal Server Error");
@@ -426,9 +551,16 @@ app.get("/requested/:electionID", async (req, res) => {
   try {
     const { electionID } = req.params;
 
-    const requestedElection = await getRequestedElection(electionID);
+    const name = await getName(conn, req.session.userID);
 
-    res.render("requested", { requestedElection });
+    const requestedElection = await getRequestedElection(electionID);
+    
+    // res.render('requested', { name ,requestedElection });
+
+    res.render("requested", {
+      requestedElection,
+      name: name,
+    });
   } catch (error) {
     console.error("Error fetching data from the database:", error);
     res.status(500).send("Internal Server Error");
@@ -570,8 +702,15 @@ const insVote = async (conn, voterID, electionID, candidate) => {
 };
 
 const getName = async (conn, voterID) => {
+  const query = `
+                SELECT 
+                    name 
+                FROM 
+                    user inner join voter
+                      on user.userID = voter.voterID
+                WHERE voterID = ?` ;
   return new Promise((resolve, reject) => {
-    conn.query("SELECT name FROM voter WHERE voterID = ?", voterID, (err, result) => {
+    conn.query(query, voterID, (err, result) => {
       if (err) {
         reject(err);
       } else {
@@ -610,34 +749,41 @@ const getPublicKey = async (conn) => {
 //   res.render("result");
 // });
 
-app.get("/result", (req, res) => {
-  // const userId = req.session.userID; // Ambil ID pengguna dari sesi atau permintaan
-  const userId = 5;
-  const query = `
-    SELECT election.title, candidate.name AS winnerName, result.frequency, 
-    (result.frequency / (SELECT COUNT(*) FROM vote WHERE vote.electionID = result.electionID)) * 100 AS winPercentage
-    FROM result
-    INNER JOIN election ON result.electionID = election.electionID
-    INNER JOIN candidate ON result.candidateID = candidate.candidateID
-    INNER JOIN participation ON result.electionID = participation.electionID
-    WHERE participation.voterID = ${userId} AND participation.requestStatus = 1;
-  `;
 
-  pool.query(query, (error, results) => {
-    if (error) throw error;
-    const namaPengguna = "ContohNamaPengguna"; // Gantilah dengan cara Anda mendapatkan nama pengguna
+// app.get('/result', (req, res) => {
+//   // const userId = req.session.userID; // Ambil ID pengguna dari sesi atau permintaan
+//   const userId = 5;
+//   const query = `
+//     SELECT election.title, candidate.name AS winnerName, result.frequency, 
+//     (result.frequency / (SELECT COUNT(*) FROM vote WHERE vote.electionID = result.electionID)) * 100 AS winPercentage
+//     FROM result
+//     INNER JOIN election ON result.electionID = election.electionID
+//     INNER JOIN candidate ON result.candidateID = candidate.candidateID
+//     INNER JOIN participant ON result.electionID = participant.electionID
+//     WHERE participant.voterID = ${userId} AND participant.requestStatus = 1;
+//   `;
 
-    res.render("result", { namaPengguna, resultData: results });
-  });
-});
+//   pool.query(query, (error, results) => {
+//     if (error) throw error;
+//     const namaPengguna = "ContohNamaPengguna"; // Gantilah dengan cara Anda mendapatkan nama pengguna
+
+//     res.render('result', { namaPengguna, resultData: results });
+//   });
+// })
 
 //KODE YG BAKAL DIPAKE NNTI UNTK app.get('/result')
-//result.frequency,
-//(result.frequency / (SELECT COUNT(*) FROM vote WHERE vote.electionID = result.electionID)) * 100 AS winPercentage
+// result.frequency, 
+// (result.frequency / (SELECT COUNT(*) FROM vote WHERE vote.electionID = result.electionID)) * 100 AS winPercentage
 
-//app.get('/result', (req, res) => {
-// const userId = req.session.userID; // Ambil ID pengguna dari sesi atau permintaan
-//   const userId = 5;
+// app.get('/result', async (req, res) => {
+//   const userId = req.session.userID; 
+
+//   //const name = await getName(conn, req.session.userID);
+
+//   //const frequency = await getCandidateFrequency(candidateID);
+
+
+//   // const userId = 5;
 //   const query = `
 //     SELECT
 //       election.title,
@@ -651,13 +797,160 @@ app.get("/result", (req, res) => {
 //   `;
 
 //   pool.query(query, (error, results) => {
-//     if (error) throw error;
-//     const namaPengguna = "ContohNamaPengguna"; // Gantilah dengan cara Anda mendapatkan nama pengguna
-
-//     res.render('result', { namaPengguna, resultData: results });
+//     if (error){ 
+//       console.err('Error fetching data from the database:', error);
+//     // const namaPengguna = "ContohNamaPengguna"; 
+//     } else {
+//     res.render("result", 
+//     { 
+//       // name:name,
+//       results: results, 
+//       // frequency: frequency,
+//     });
+//   }
 //   });
 // });
 
+
+app.get('/result', async (req, res) => {
+  try{
+  const voterID = req.session.userID; 
+
+  const conn = await dbConnect();
+
+  const name = await getName2(conn, req.session.userID);
+
+  const dataResult = await getResultCoba(req.session.userID);
+
+  const winningCandidate = findWinningCandidate(dataResult);
+
+  
+
+  console.log('Name:', name);
+    console.log('Data Result:', dataResult);
+    console.log('voter :', voterID);
+    console.log('Winning Candidate:', winningCandidate);
+
+  // const frequency = await getCandidateFrequency(candidateID);
+
+  // const userId = 5;
+  // const query = `
+  //   SELECT 
+  //     election.title, 
+  //     candidate.name AS winnerName, 
+  //     candidate.candidateID 
+  //   FROM result
+  //   INNER JOIN election ON result.electionID = election.electionID
+  //   INNER JOIN candidate ON result.candidateID = candidate.candidateID
+  //   INNER JOIN participation ON result.electionID = participation.electionID
+  //   WHERE participation.voterID = ${userId} AND participation.requestStatus = 1;
+  // `;
+
+  res.render("result", {
+    dataResult,
+    winningCandidate,
+    name: name,
+   
+    // frequency,
+  });
+} catch (error) {
+  console.error('Error fetching data from the database:', error);
+  res.status(500).send('Internal Server Error');
+  console.log('Name:', name);
+    console.log('Data Result:', dataResult);
+}
+});
+
+const getResult = async (voterID) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+    SELECT 
+    election.title, 
+    candidate.name AS winnerName, 
+    candidate.candidateID 
+  FROM result
+  INNER JOIN election ON result.electionID = election.electionID
+  INNER JOIN candidate ON result.candidateID = candidate.candidateID
+  INNER JOIN participation ON result.electionID = participation.electionID
+  WHERE participation.voterID = ? AND participation.requestStatus = 1;
+`;
+    pool.query(query, [voterID], (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+};
+
+const getResultCoba = async (voterID) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+    SELECT 
+    election.title, 
+    candidate.name AS name, 
+    candidate.candidateID,
+    electionresult.jumlah 
+  FROM 
+  (SELECT electionID, candidateID, COUNT(resultID) AS jumlah FROM result GROUP BY electionID, candidateID) AS electionresult 
+  INNER JOIN candidate ON candidate.candidateID = electionresult.candidateID
+  INNER JOIN election ON election.electionID = candidate.electionID
+  INNER JOIN participation ON participation.electionID = electionresult.electionID
+  WHERE participation.voterID = ? AND participation.requestStatus = 1;
+`;
+    pool.query(query, [voterID], (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+};
+
+const getCandidateFrequency = async (candidateID) => {
+
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT COUNT(resultID) as frekuensi
+      FROM result
+      WHERE electionID = ? and candidateID = ?
+    `;
+    const params = [electionID, candidateID] ;
+    pool.query(query, params, (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        const frequency = results;
+        resolve(frequency);
+      }
+    });
+  });
+  // console.log(frequency) ;
+};
+
+const getName2 = async (conn, voterID) => {
+  const query = `
+    SELECT 
+        name 
+    FROM 
+        user inner join voter
+          on user.userID = voter.voterID
+    WHERE voterID = ?` ;
+  return new Promise((resolve, reject) => {
+    conn.query(query, [voterID], (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
+
+
+
 // const getCandidateFrequency = async (candidateID) => {
 
 //   return new Promise((resolve, reject) => {
@@ -678,23 +971,17 @@ app.get("/result", (req, res) => {
 //   });
 //   // console.log(frequency) ;
 // };
-// const getCandidateFrequency = async (candidateID) => {
 
-//   return new Promise((resolve, reject) => {
-//     const query = `
-//       SELECT COUNT(resultID)
-//       FROM result
-//       WHERE electionID = ? and candidateID = ?
-//     `;
-//     const params = [electionID, candidateID] ;
-//     pool.query(query, params, (err, results) => {
-//       if (err) {
-//         reject(err);
-//       } else {
-//         const frequency = results;
-//         resolve(frequency);
-//       }
-//     });
-//   });
-//   // console.log(frequency) ;
-// };
+const findWinningCandidate = (results) => {
+  let maxFrequency = 0;
+  let winningCandidate = null;
+
+  results.forEach((result) => {
+    if (result.jumlah > maxFrequency) {
+      maxFrequency = result.jumlah;
+      winningCandidate = result.name;
+    }
+  });
+
+  return winningCandidate;
+};

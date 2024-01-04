@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+
+<body>
+    <div id="wrapper">
+        <section id="left-sidebar">
+            <%- include('nav-link/admin.ejs'); %>
+        </section>
+        <section id="data">
+            <h1>Atur Jadwal Sidang</h1>
+                <div class="form-container">
+                    <%if(success===true){%>
+                        <p class="success">user berhasil dihapus</p>
+                    <%}else if(success===false){%>
+                        <p class="failed">user gagal dihapus</p>
+                    <%}%>
+                    <form action="/dashboard-admin" method="post">
+                        <label for="userID">Users:</label>
+                        <select id="userID" name="userID">
+                            <% for(let i=0; i < users.length ; i++) { %>
+                                <option value='<%=users[i].userID%>'><%=users[i].username%></option>
+                            <%}%>
+                        </select>
+                        <input type="submit" value="delete">
+                    </form>
+                </div>
+        </section>   
+    </div>
+</body>
+
+</html>
