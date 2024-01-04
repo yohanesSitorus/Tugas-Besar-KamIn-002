@@ -2,35 +2,52 @@
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Hasil Voting</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,1,0" />
-  <link rel="stylesheet" href="/css/default-styling.css">
-  <link rel="stylesheet" href="/css/result.css">
-</head>
-<body>
-  <div id="wrapper">
-    <section id="left-sidebar">
-      <%- include('nav-link/sidebar'); %>
-    </section>
-    <div class="container">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hasil Voting</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,1,0" />
+    <link rel="stylesheet" href="/css/default-styling.css" />
+    <link rel="stylesheet" href="/css/result.css" />
+  </head>
+  <body>
+    <div id="wrapper">
+      <section id="left-sidebar">
+        <!-- <h2>Selamat Datang, <%//- name[0].name %>.</h2> -->
+        <%- include('nav-link/sidebar'); %>
+      </section>
+      <div class="container">
+        <!-- <div class="result-section">
+        <h2>Nama Voting</h2>
+        <p>Kandidat Pemenang: [Nama Kandidat]</p>
+        <p>Persentase Kemenangan: [Persentase]%</p>
+      </div>
       <div class="result-section">
-        <h2>Hasil Voting</h2>
+        <h2>Nama Voting</h2>
+        <p>Kandidat Pemenang: [Nama Kandidat]</p>
+        <p>Persentase Kemenangan: [Persentase]%</p>
+      </div>
+      <div class="result-section">
+        <h2>Nama Voting</h2>
+        <p>Kandidat Pemenang: [Nama Kandidat]</p>
+        <p>Persentase Kemenangan: [Persentase]%</p>
+      </div> -->
         <% dataResult.forEach(result => { %>
-          <div>
-            <h3><%= result.title %></h3>
-            <p>Kandidat: <%= result.name %></p>
-            <p>Frekuensi: <%= result.jumlah %></p>
+        <div class="result-section">
+          <h2><%= result.title %></h2>
+          <% dataAll.forEach(data => { %>
+          <div class="candidatelist-section">
+            <% if(data.electionID == result.electionID) { %>
+            <p>Kandidat: <%= data.name %></p>
+            <p>Frekuensi: <%= data.jumlah %></p>
+            <% } %>
           </div>
-        <% }); %>
-        <div class="winner">
-          <h2>Kandidat Pemenang</h2>
-          <p><%= winningCandidate %></p>
+          <% }); %>
+          <p>Kandidat Pemenang: <%= result.name %></p>
+          <p>Frekuensi: <%= result.terbanyak %></p>
         </div>
+        <% }); %>
       </div>
     </div>
-  </div>
-</body>
+  </body>
 </html>
