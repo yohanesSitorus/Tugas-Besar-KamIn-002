@@ -458,7 +458,7 @@ app.post("/signup", async (req, res) => {
                         console.log(error);
                       } else {
                         req.session.userID = userID;
-                        console.log('voter success successfully') ;
+                        console.log('voter inserted successfully') ;
                         res.redirect("/dashboard-user");
                       }
                     });
@@ -478,10 +478,13 @@ app.post("/signup", async (req, res) => {
 const getElections = async (voterID) => {
   return new Promise((resolve, reject) => {
     const query = `
-          SELECT election.electionID, election.title, election.description, 
-                 COALESCE(participation.requestStatus, 0) AS requestStatus
+          SELECT 
+            election.electionID, 
+            election.title, 
+            election.description, 
+            COALESCE(participation.requestStatus, 0) AS requestStatus
           FROM election
-          LEFT JOIN participation ON election.electionID = participation.electionID
+            LEFT JOIN participation ON election.electionID = participation.electionID
                                  AND participation.voterID = ?
       `;
     pool.query(query, [voterID], (err, results) => {
