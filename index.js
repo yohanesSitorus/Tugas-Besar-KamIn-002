@@ -86,7 +86,7 @@ const isVoter = (req, res, next) => {
 };
 
 app.use(['/dashboard-admin'], isAdmin);
-app.use(['/Add_New_Election', 'dashboard-user', '/requested/:electionID', '/process-request/accept', 
+app.use(['/Add_New_Election', '/dashboard-user', '/requested/:electionID', '/process-request/accept', 
           '/process-request/reject', '/approved/:electionID', '/result'], isVoter);
 
 // untuk reuse 
@@ -109,13 +109,14 @@ app.post("/Add_New_Election", async (req, res) => {
   const electionDescription = req.body.electiondescription;
   const startDate = req.body.startdate;
   const endDate = req.body.enddate;
-  const email = req.body.inviteinput;
+  const emailArray = req.body.inviteinput.split('\n').map(e => e.trim()).filter(e => e !== ''); // Ganti inviteinput menjadi req.body.inviteinput
+  const candidatesArray = req.body.candidates.split('\n').map(c => c.trim()).filter(c => c !== ''); // Ganti candidates menjadi req.body.candidates
 
   // Pengecekan apakah email sudah terdaftar
-  const emailQuery = "SELECT `email` FROM voter WHERE `email` = ?";
-  const emailQ = [email];
+  const emailQuery = "SELECT email FROM voter WHERE email IN (?)"; // Ganti operator "=" menjadi "IN (?)"
+  const emailQ = [emailArray];
 
-  pool.query(emailQuery, emailQ, (error, emailResult) => {
+  pool.query(emailQuery, [emailQ], (error, emailResult) => { // Tambahkan [emailQ] sebagai parameter array untuk menghindari error
     if (error) {
       console.log(error);
       return res.render("Add_New_Election", {
@@ -133,13 +134,31 @@ app.post("/Add_New_Election", async (req, res) => {
           console.log(insertError);
           return res.render("Add_New_Election", {
             errorMsg: "Gagal menyimpan data pemilihan. Mohon coba lagi nanti.",
-            successMsg: null, // Tambahkan successMsg agar pesan keberhasilan tidak ditampilkan saat terjadi kesalahan
+            successMsg: null,
           });
         }
 
-        console.log("Data pemilihan berhasil disimpan:", insertResult);
-        res.render("Add_New_Election", {
-          errorMsg: "Pemilihan berhasil ditambahkan.",
+        const electionID = insertResult.insertId; // Dapatkan ID pemilihan yang baru saja ditambahkan
+
+        // Insert candidates into the candidate table
+        const insertCandidatesQuery = "INSERT INTO candidate (electionID, name) VALUES ?";
+        const candidatesValues = candidatesArray.map(candidate => [electionID, candidate]);
+
+        pool.query(insertCandidatesQuery, [candidatesValues], (candidatesError, candidatesResult) => {
+          if (candidatesError) {
+            console.log(candidatesError);
+            return res.render("Add_New_Election", {
+              errorMsg: "Gagal menyimpan data kandidat. Mohon coba lagi nanti.",
+              successMsg: null,
+            });
+          }
+
+          console.log("Data kandidat berhasil disimpan:", candidatesResult);
+          console.log("Data pemilihan berhasil disimpan:", insertResult);
+
+          res.render("Add_New_Election", {
+            errorMsg: "Pemilihan berhasil ditambahkan.",
+          });
         });
       });
     } else {
@@ -178,6 +197,18 @@ const insertKey = async (conn, keyPub, keyPriv) => {
   });
 };
 
+//logout --------------------------------------------------------------------------------------------------------------------------------
+app.get('/logout', async (req, res) => {
+  removeCookies(res);
+  res.redirect('login');
+})
+
+function removeCookies(res) {
+  res.clearCookie('name')
+  res.clearCookie('userID');
+  res.clearCookie('role');
+}
+
 //login page--------------------------------------------------------------------------------------------------------------------------------
 app.get("/login", async (req, res) => {
   res.render("login", { errorMsg: null, success: null });
@@ -209,7 +240,7 @@ app.post("/login", async (req, res) => {
       } else if (results.length > 0) {
         // console.log(results);
         const user = results[0];
-        console.log(results[0]);
+        // console.log(results[0]);
         req.session.userID = user.userID;
         res.cookie('name', user.name);
         res.cookie('userID', user.userID);
@@ -484,8 +515,8 @@ const getElections = async (voterID) => {
             election.description, 
             COALESCE(participation.requestStatus, 0) AS requestStatus
           FROM election
-            LEFT JOIN participation ON election.electionID = participation.electionID
-                                 AND participation.voterID = ?
+            INNER JOIN participation ON election.electionID = participation.electionID
+          WHERE participation.voterID = ?
       `;
     pool.query(query, [voterID], (err, results) => {
       if (err) {
@@ -830,9 +861,9 @@ app.get('/result', async (req, res) => {
   
 
   console.log('Name:', name);
-    console.log('Data Result:', dataResult);
-    console.log('voter :', voterID);
-    console.log('Winning Candidate:', winningCandidate);
+  console.log('Data Result:', dataResult);
+  console.log('voter :', voterID);
+  console.log('Winning Candidate:', winningCandidate);
 
   // const frequency = await getCandidateFrequency(candidateID);
 
@@ -859,7 +890,7 @@ app.get('/result', async (req, res) => {
 } catch (error) {
   console.error('Error fetching data from the database:', error);
   res.status(500).send('Internal Server Error');
-  console.log('Name:', name);
+    console.log('Name:', name);
     console.log('Data Result:', dataResult);
 }
 });
